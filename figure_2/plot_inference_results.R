@@ -4,7 +4,7 @@
 ##
 ## Purpose of script: Plot estimates from SciPhy on HEK293 cell culture data, clock per target, with color annotations matching the tree.
 ##
-## Author: Antoine Zwaans
+## Author: Antoine Zwaans & Sophie Seidel
 ##
 ## Date Created: 2023-10-13
 ##
@@ -15,7 +15,6 @@
 ## set working directory where the log files are
 
 setwd("~/Projects/typewriter_analysis/results/analysis_cell_culture_data/inference_results/clock_per_target/1000_cells")
-pic_dir = "~/Projects/typewriter_analysis/paper_figures/figure_2/"
 
 # set figure settings
 text_size=10
@@ -35,6 +34,8 @@ library(magick)
 
 typewriter_file <- "combined.log"
 typewriter <- read.table(typewriter_file, header = T)
+
+figure_dir = "~/Projects/sciphy-materials/figure_2/"
 
 # -----------------------------
 #  plot insertion probabilities
@@ -83,8 +84,8 @@ p_inserts <-  ggplot(datafra) +
         panel.grid.major.x = element_blank(),axis.title.x = element_blank())
 
 
-ggsave(paste0(pic_dir, "insert_probs.png"), p_inserts, width = 4.76, height = 7.14, units = "cm", dpi = 300)
-svg(filename = paste0(pic_dir, "insert_probs.svg"), width = 4.76, height = 7.14, )
+ggsave(paste0(figure_dir, "insert_probs.png"), p_inserts, width = 4.76, height = 7.14, units = "cm", dpi = 300)
+svg(filename = paste0(figure_dir, "insert_probs.svg"), width = 4.76, height = 7.14, )
 p_inserts
 dev.off()
   # --------------------
@@ -126,7 +127,7 @@ segments <- data.frame(xstart=c(2,5),xstop=c(4,13),ystart=c(0.25,0.21),ystop=c(0
 p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
   theme_classic() +
   geom_violin(draw_quantiles =  c(0.5)) +
-  ylab(parse(text = paste0('"Posterior edit rate "'))) +
+  ylab(parse(text = paste0('"Posterior edit rate "', '[~d^-1]'))) +
 
   theme(legend.position = "none") +
   scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.3))+
@@ -150,7 +151,7 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
 
 
 #ggsave(paste0(pic_dir,"clock_rate.png"), p_clock_pos, width = 4.76, height = 7.14, units = "cm", dpi = 300)
-ggsave(paste0(pic_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
+ggsave(paste0(figure_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
   # --------------------
 #  plot the growth rate
 # --------------------
@@ -169,17 +170,17 @@ p_growth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
   theme_classic() +
   geom_violin(draw_quantiles = 0.5) +
   theme(legend.position = "none" ) +
-  ylab(parse(text = paste0('"Posterior growth rate "', '(~day^-1)'))) +
+  ylab(expression("Constant growth rate [" * d^-1 * "]"))+
   coord_cartesian(ylim = c(-0.1,0.9),expand = TRUE) +
-  ggtitle("Growth rate")+
+  #ggtitle("Growth rate")+
   #theme(plot.title = element_text(hjust=0.5)) +
-  scale_fill_manual(values=c("white","#E1E1F7")) + theme(text=element_text(size = text_size),panel.grid.minor = element_blank(),
-                                                         panel.border = element_blank(),
-                                                         panel.background = element_blank(),panel.grid.major.x = element_blank(),axis.title.x = element_blank())
+  scale_fill_manual(values=c("white","#E1E1F7")) + 
+  theme(text=element_text(size = text_size),panel.grid.minor = element_blank(),
+        panel.border = element_blank(), panel.background = element_blank(),
+        panel.grid.major.x = element_blank(),axis.title.x = element_blank())
 
 
-ggsave("growth_rate.png", p_growth, width = 15, height = 10, units = "cm", dpi = 300)
-
+ggsave(paste0(figure_dir, "growth_rate.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)
 
 #extract and substract the birth and death rates
 bd_rates <- typewriter[,"birthRate"]
