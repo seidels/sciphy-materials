@@ -6,7 +6,7 @@
 setwd("/Users/azwaans/typewriter_analysis/results/gastruloid/analyses/")
 
 ## set working directory 
-pic_dir = "~/typewriter_analysis/paper_figures/figure_4/"
+pic_dir = "~/typewriter_analysis/paper_figures/figure_5/"
 
 # set figure settings
 text_size=10
@@ -144,7 +144,7 @@ p_growth_OU_2 <- ggplot(growth_combined) +
 p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
 #p_growth_OU <- p_growth_OU + theme(legend.position = "none")+  guides(color = guide_legend(ncol = 1)) ,ncol=2,nrow=1, rel_widths = c(1.0,1.0),axis = "l")
-ggsave(paste0(pic_dir,"figure_4_D.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_5_D.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
 
 ###########################
@@ -197,7 +197,7 @@ p_growth_OU_2 <- ggplot(growth_combined) +
 
 p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
-ggsave(paste0(pic_dir,"figure_4_supplement.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_5_supplement.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
 
 ###
