@@ -87,7 +87,13 @@ for(i in 0:22) {
   for(j in c(2,5)) {
     print(i*5 + j)
     print(merle_raw$Well_ID[i*5 + j])
-    rate <- c(rate,log(merle_raw$N[i*5 + j]/merle_raw$N[i*5 + j-1]))
+    if(j==2) {
+      rate <- c(rate,log(merle_raw$N[i*5 + j]/merle_raw$N[i*5 + j-1]))
+    }
+    if(j==5) {
+      rate <- c(rate,(1/3)*log(merle_raw$N[i*5 + j]/merle_raw$N[i*5 + j-3]))
+    }
+   
   }
 }
 
@@ -138,13 +144,13 @@ p_growth_OU_2 <- ggplot(growth_combined) +
   geom_stepribbon(data=merle_et_al_bins,aes(x=t,ymin=merle_low, ymax=merle_high, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +  
   theme_bw() + scale_color_manual(values = cols) + scale_fill_manual(values = cols_fill) + 
   theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line()) +
-  ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,10,11)) +
+  ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,7.5,10,11)) +
   xlab("Time [d]") 
 
 p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
 #p_growth_OU <- p_growth_OU + theme(legend.position = "none")+  guides(color = guide_legend(ncol = 1)) ,ncol=2,nrow=1, rel_widths = c(1.0,1.0),axis = "l")
-ggsave(paste0(pic_dir,"figure_5_D.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_5_D.pdf"),p_growth_OU_2, width = 14.28, height = 5, units = "cm", dpi = 300)
 
 
 ###########################
