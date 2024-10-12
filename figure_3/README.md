@@ -16,6 +16,8 @@ Each analysis xml can be found under the `inference_output` directory. Each anal
 
 `beast -seed [seed] [analysis_xml]`
 
+The output logs of these analyses are too large to be included in github. Thus, we set them to empty placeholder files `1-combined.log`, `2-combined.log` and `3-combined.log`, with the initial integer indicating the analysis. The scripts visualising output based on the inference logs will use these placeholder names.
+
 # Generate alignment
 
 To generate the alignments underlying these analyses, please not that all analyses use the same set of alignments. This set can be generated as follows: To filter the data, located in `data`, pre-process it and generate the alignments, run the `pre_processing_scripts/run.sh` script.
