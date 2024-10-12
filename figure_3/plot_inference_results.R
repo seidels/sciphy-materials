@@ -12,9 +12,6 @@
 ## Email: antoine.zwaans@bsse.ethz.ch
 ##
 
-## set working directory where the log files are
-
-setwd("~/Projects/typewriter_analysis/results/analysis_cell_culture_data/inference_results/clock_per_target/1000_cells")
 
 # set figure settings
 text_size=10
@@ -26,16 +23,15 @@ library(lubridate)
 library(dirmult)
 library(coda)
 library(LaplacesDemon)
-library(cowplot)
 library(scales)
 library(magick)
 
 #load the combined log file
-
-typewriter_file <- "combined.log"
+#typewriter_file <- "/Volumes/stadler/People/Sophie_Antoine_shared/cell_culture/13_tbcs/clock_per_target/1000_cells_1/combined/combined.log"
+typewriter_file <- "inference_output/1-combined.log"
 typewriter <- read.table(typewriter_file, header = T)
 
-figure_dir = "~/Projects/sciphy-materials/figure_2/"
+figure_dir = "plots/"
 
 # -----------------------------
 #  plot insertion probabilities
@@ -48,7 +44,7 @@ trinucleotides_names <- c("CAT","CCG","GCC","ATA","GAT","ACG","ACA","TCG","TAT",
 #reorder by median
 names(insert_probs) <- trinucleotides_names
 insert_probs <- insert_probs[order(-sapply(insert_probs, median))]
-insert_probs <- bind_cols(insert_probs,Prior=rdirichlet(nrow(insert_probs), rep(1.5,19))[,2])
+insert_probs <- bind_cols(insert_probs,Prior=extraDistr::rdirichlet(nrow(insert_probs), rep(1.5,19))[,2])
 insert_probs_medians <- sapply(insert_probs,median)
 insert_probs_low <- as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.025)}))
 insert_probs_up <-  as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.975)}))
@@ -85,10 +81,8 @@ p_inserts <-  ggplot(datafra) +
 
 
 ggsave(paste0(figure_dir, "insert_probs.png"), p_inserts, width = 4.76, height = 7.14, units = "cm", dpi = 300)
-svg(filename = paste0(figure_dir, "insert_probs.svg"), width = 4.76, height = 7.14, )
-p_inserts
-dev.off()
-  # --------------------
+
+# --------------------
 #  plot the clock rates
 # --------------------
 
@@ -150,7 +144,6 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
   geom_segment(data=segments,aes(x=xstart,xend=xstop,y=ystart,yend=ystop),inherit.aes = FALSE)
 
 
-#ggsave(paste0(pic_dir,"clock_rate.png"), p_clock_pos, width = 4.76, height = 7.14, units = "cm", dpi = 300)
 ggsave(paste0(figure_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
   # --------------------
 #  plot the growth rate
@@ -181,88 +174,4 @@ p_growth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
 
 
 ggsave(paste0(figure_dir, "growth_rate.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)
-
-#extract and substract the birth and death rates
-bd_rates <- typewriter[,"birthRate"]
-
-#add a prior column
-bd_rates <- bind_cols(Rate=bd_rates,Prior= rlnorm(length(bd_rates), meanlog = -0.6, sdlog = 1)  )
-bd_rates_long <- pivot_longer(bd_rates,seq(1,ncol(bd_rates)))
-
-#order columns
-bd_rates_long <- mutate(bd_rates_long,name = fct_relevel(name,"Rate","Prior"))
-p_birth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
-  theme_bw() +
-  geom_violin(draw_quantiles = 0.5) +
-  theme(legend.position = "none" ) +
-  xlab("Division") +
-  ylab(parse(text = paste0('"Posterior division rate "', '(~day^-1)'))) +
-  coord_cartesian(ylim = c(-0.1,0.9),expand = TRUE) +
-  scale_fill_manual(values=c("#5CA17D","#E1E1F7")) + theme(text=element_text(size = text_size),panel.grid.minor = element_blank(),
-                                                           panel.border = element_blank(),
-                                                           panel.background = element_blank(),panel.grid.major.x = element_blank())
-
-
-#extract and substract the birth and death rates
-bd_rates <- typewriter[,"deathRate"]
-
-#add a prior column
-bd_rates <- bind_cols(Rate=bd_rates,Prior= rlnorm(length(bd_rates), meanlog = -2, sdlog = 1) )
-bd_rates_long <- pivot_longer(bd_rates,seq(1,ncol(bd_rates)))
-
-#order columns
-bd_rates_long <- mutate(bd_rates_long,name = fct_relevel(name,"Rate","Prior"))
-p_death <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
-  theme_bw() +
-  geom_violin(draw_quantiles = 0.5) +
-  theme(legend.position = "none" ) +
-  xlab("Death") +
-  ylab(parse(text = paste0('"Posterior death rate "', '(~day^-1)'))) +
-  coord_cartesian(ylim = c(-0.1,0.9),expand = TRUE) +
-  scale_fill_manual(values=c("#5CA17D","#E1E1F7")) + theme(text=element_text(size = text_size),panel.grid.minor = element_blank(),
-                                                           panel.border = element_blank(),
-                                                           panel.background = element_blank(),panel.grid.major.x = element_blank())
-
-
-
-combined <- cowplot::plot_grid(p_birth+ theme(axis.line = element_line(colour = "black")),p_death+ theme(axis.line = element_line(colour = "black")),nrow = 1)
-
-
-
-ggsave("birth_death_rates.png", combined, width = 50, height = 15, units = "cm", dpi = 300)
-
-
-
-intro_to_dat = cowplot::draw_image(image = paste0(pic_dir, "monoclonal_expansion_HEK293T.svg"), scale = 1)
-# ---------------------------
-#  plot all estimates aligned
-# ---------------------------
-top_row <- cowplot::plot_grid(p_clock_pos+ theme(axis.line = element_line(colour = "black")), p_growth+ theme(axis.line = element_line(colour = "black")), ncol=2,align = "h",rel_widths = c(1,0.5),label_size=22)
-combined <- cowplot::plot_grid(top_row,p_inserts+ theme(axis.line = element_line(colour = "black")),nrow = 2,rel_heights = c(1,0.6),label_size=text_size)
-ggsave("combined_estimates_vertical.png", combined, width = 50, height = 35, units = "cm", dpi = 300)
-combined <- cowplot::plot_grid(p_inserts+
-                                 theme(axis.line = element_line(colour = "black")),p_clock_pos+
-                                 theme(axis.line = element_line(colour = "black")), p_growth+
-                                 theme(axis.line = element_line(colour = "black")),
-                               nrow = 1,align = "h",
-                               label_size=text_size,rel_widths = c(1,1.5,0.7))
-ggsave("~/Projects/typewriter_analysis/paper_figures/figure_2/combined_estimates_horizontal.png",
-       combined, width = 14.28, height = 7.14, units = "cm", dpi = 300)
-
-row_1 <- cowplot::plot_grid(intro_to_dat + theme(axis.line = element_line(colour = "black")) +
-                              p_inserts + theme(axis.line = element_line(colour = "black")),
-                            p_clock_pos,
-                            nrow = 1,align = "h",
-                               label_size=text_size,rel_widths = c(1,1,1))
-ggsave("~/Projects/typewriter_analysis/paper_figures/figure_2/row_1.png",
-       row_1, width = 14.28, height = 7.14, units = "cm", dpi = 300)
-
-
-
-
-
-
-
-
-
 

@@ -16,10 +16,11 @@
 ## load up the packages we will need:  (uncomment as required)
 library(ggtree)
 library(ggplot2)
+library(tidytree)
 library(treeio)
 
 text_size = 10
-output_dir = "~/Projects/sciphy-materials/figure_2/"
+output_dir = "plots/"
 ## ---------------------------
 
 swap_integer_for_edit = function(integer, insert_to_integer_map){
@@ -32,11 +33,11 @@ swap_integer_for_edit = function(integer, insert_to_integer_map){
 
 ## define input files
 
-tree_file = "~/Projects/typewriter_analysis/results/analysis_cell_culture_data/inference_results/clock_per_target/1000_cells/MCC_on_thinned4000000trees.tree"
-alignment = "~/Projects/typewriter_analysis/results/analysis_cell_culture_data/alignments/simple_1000cells_13tbcs/alignment_seed1.txt"
-cell_ids_file = "~/Projects/typewriter_analysis/results/analysis_cell_culture_data/alignments/simple_1000cells_13tbcs/cell_ids_seed1.txt"
-edit_file = "~/Projects/typewriter_analysis/results/analysis_cell_culture_data/alignments/simple_1000cells_13tbcs/edit_table_sample_1.csv"
-edit_to_integer_map = "~/Projects/typewriter_analysis/data/cell_culture/insert_to_integer_map.csv"
+tree_file = "inference_output/1-MCC_on_thinned4000000trees.tree"
+alignment = "pre_processed_data/1-alignment_seed1.txt"
+cell_ids_file = "pre_processed_data/1-cell_ids_seed1.txt"
+edit_file = "pre_processed_data/1-edit_table_sample_1.csv"
+edit_to_integer_map = "pre_processed_data/1-insert_to_integer_map.csv"
 
 
 # Hack from github due to package error: could not find function "offspring.tbl_tree_item"
@@ -48,44 +49,30 @@ child.tbl_tree <- utils::getFromNamespace("child.tbl_tree", "tidytree")
 parent.tbl_tree <- utils::getFromNamespace("parent.tbl_tree", "tidytree")
 
 ## load input
-tree = read.beast(file = tree_file)
+tree = treeio::read.beast(file = tree_file)
 dat = tree@data
 
-# show overview figure
-# p = ggtree(tree)  +
-#   geom_hilight(node=1004, fill="steelblue", alpha=0.5)+
-#   geom_rootedge(rootedge = 0.35223) + theme_tree2()
-# p
-# 
-# p = ggtree(tree, root.position = 0.35223)  +
-#   geom_hilight(node=1962, fill="steelblue", alpha=0.5)+
-#   geom_rootedge(rootedge = 0.3522) + theme_tree2() + geom_nodelab(aes(x=branch, label=node))
-# p
-
 p = ggtree(tree, root.position = 0.35223, size=0.05)  +
-  geom_hilight(node=1478, fill="steelblue", alpha=0.5)+
+  geom_hilight(node=1457, fill="steelblue", alpha=0.5)+
   geom_rootedge(rootedge = 0.3522, size=0.05) + theme_tree2() + 
   theme(axis.text.x  = element_text(size = text_size-5),
         axis.title.x  = element_text(size = text_size))+
   xlab("Time [d]")
-# + geom_nodelab(aes(x=branch, label=node))
 p
 
 ggsave(paste0(output_dir,"MCC_tree_marked_clade.png"), p, width = 4.76, height = 4.76, units = "cm", dpi = 300)
-svg(filename = paste0(output_dir,"MCC_stree_marked_clade.svg"), width = 14.28, height = 15)
-p
-dev.off()
+
 
 # zoom in on clade and show alignment and time uncertainty
-sub =  tree_subset(tree = tree, node = 1962,  group_node = T, root_edge = T, levels_back = F)
-sub =  tree_subset(tree = tree, node = 1478,  group_node = T, root_edge = T, levels_back = F)
+sub =  tree_subset(tree = tree, node = 1457,  group_node = T, root_edge = T, levels_back = F)
 subdat = sub@data
 subtree = get.tree(sub)
 
 # sub tree with negative branch lengths
-sub_tree_plot = ggtree(sub, root.position = 3.8) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
+sub_tree_plot = ggtree(sub, root.position = 4.48) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
   geom_range('height_0.95_HPD', color='grey', size=3, alpha=.4)+
   geom_nodelab(aes(x=branch, label=round(posterior, 2)), vjust=-.1, size=3) 
+sub_tree_plot
 
 tips_in_subtree = subtree$tip.label
 
@@ -135,7 +122,7 @@ for (targetBC in targetBCs){
 ## plot tree with edit matrix
 #basic_tree = ggtree(sub,layout="ellipse")
 
-sub_tree_plot = ggtree(sub, root.position = 3.8) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
+sub_tree_plot = ggtree(sub, root.position = 4.48) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
   geom_range('height_0.95_HPD', color='grey', size=3, alpha=.4)+
   geom_nodepoint(aes(size=posterior))+ scale_size(range = c(0.1, 2))
   
@@ -168,9 +155,5 @@ basic_tree_bars <- basic_tree_bars + geom_segment(x=label_segs$xstart[i],y=-5,
 }
 basic_tree_bars
 
-#combined
-basic_tree_bars_axis
+
 ggsave(paste0(output_dir,"MCC_subtree_with_alignment_annotated.png"), basic_tree_bars, width = 14.28, height = 15, units = "cm", dpi = 300)
-svg(filename = paste0(output_dir,"MCC_subtree_with_alignment_annotated.svg"), width = 14.28, height = 15)
-basic_tree_bars
-dev.off()
