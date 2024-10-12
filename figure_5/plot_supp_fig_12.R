@@ -111,42 +111,57 @@ merle_mean <- c(merle_mean$x,merle_mean$x[2])
 merle_et_al_bins <- data_frame(t=c(6.0,7.0,10),mean=merle_mean,low=merle_low,high=merle_high, tree="Merle et al.,2024")
 
 
+###########################
+#Supplemental figure with the unbinned Merle et al. data and all time bins under SciPhy
+###########################
 
-# ---------------------------------------------------------
-#  plot the dynamic growth rates inferred with and without the sampling proportion for the cell culture datasets
-# ---------------------------------------------------------
 
+#specify the timeline (breakpoints in for the skyline plot)
+timeline_changes <- c(0.0,4, 7,8, 11)
 
+#load the log file with 2 change points in the estimated rates
+
+log_file <- "combined_3-mGASv2-skyline-ou_1000000.log"
+typewriter <- read.table(log_file, header = T)
+typewriter_mcmc <- as.mcmc(typewriter)
+growth <- typewriter_mcmc[,paste0("birthRate.",1:4)] - typewriter_mcmc[,paste0("deathRate.",1:4)]
+growth_hpd = get_median_and_hpd(growth)
+growth_hpd[5, ] =  growth_hpd[4, ]# add last timepoint, st for time - 11 the same value remains
+growth_hpd$t = timeline_changes
+growth_hpd$tree = "3 change times"
+growth_combined =  growth_hpd
 
 timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
-log_file <- "combined_4-mGASv2-skyline-ou_1000000.log" # TODO ask Antoine
+
+log_file <- "combined_4-mGASv2-skyline-ou_1000000.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]
 growth_hpd = get_median_and_hpd(growth)
 growth_hpd[4, ] =  growth_hpd[3, ]# add last timepoint, st for time - 11 the same value remains
 growth_hpd$t = timeline_changes
-growth_hpd$tree = "SciPhy"
-growth_combined =   growth_hpd
+growth_hpd$tree = "2 change times"
+growth_combined = rbind(growth_combined,growth_hpd)
 
 
 #set colors and fills manually
-cols <- c("SciPhy" = "red", "3 change times" = "pink","Merle et al.,2024"="black", "mean Merle et al."="lightblue","binned Merle et al."="blue")
-cols_fill<-  c("SciPhy" = "red", "3 change times" = "pink","Merle et al.,2024"="black","mean Merle et al."="lightblue","binned Merle et al."="blue")
+cols <- c("2 change times" = "red", "3 change times" = "orange","Merle et al.,2024"="black", "mean Merle et al."="lightblue","binned Merle et al."="blue")
+cols_fill<-  c("2 change times" = "red", "3 change times" = "orange","Merle et al.,2024"="black","mean Merle et al."="lightblue","binned Merle et al."="blue")
 p_growth_OU_2 <- ggplot(growth_combined) +  
   geom_step(size=1,aes(x=t, y=median, col=tree))+ 
   geom_stepribbon(aes(x=t,ymin = hpd_low, ymax=hpd_up, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +
-  geom_step(data=merle_et_al_bins,aes(x=t,y=mean,col=tree),size=1,linetype="dashed")+
-  geom_stepribbon(data=merle_et_al_bins,aes(x=t,ymin=merle_low, ymax=merle_high, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +  
+  geom_step(data=merle_et_al_full,aes(x=t,y=mean,col=tree),size=1)+
+  geom_stepribbon(data=merle_et_al_full,aes(x=t,ymin=merle_low, ymax=merle_high, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +  
   theme_bw() + scale_color_manual(values = cols) + scale_fill_manual(values = cols_fill) + 
   theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line()) +
-  ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,7.5,10,11)) +
+  ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,8,9,10,11)) +
   xlab("Time [d]") 
 
 p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
-#p_growth_OU <- p_growth_OU + theme(legend.position = "none")+  guides(color = guide_legend(ncol = 1)) ,ncol=2,nrow=1, rel_widths = c(1.0,1.0),axis = "l")
-ggsave(paste0(pic_dir,"figure_5_D.pdf"),p_growth_OU_2, width = 14.28, height = 5, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"supplement_fig_12.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
+
+###
