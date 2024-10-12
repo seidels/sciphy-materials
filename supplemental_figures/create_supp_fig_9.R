@@ -69,16 +69,21 @@ type[which(type == "95% HPI lower")] <- "95% HPI"
 type[which(type == "95% HPI upper")] <- "95% HPI"
 df_growth <- cbind(df_growth,type)
 
-p_growth <- ggplot(df_growth, aes(x=Date, y = value, key = stat, linetype = type )) +
+p_growth <- ggplot(df_growth, aes(x=Date, y = value, key = stat, 
+                                  linetype = type)) +
   geom_step(size=1) + 
-  scale_color_manual(values=c("#5CA17D","#5CA17D","#5CA17D")) +
+  scale_color_manual(values ="#5CA17D") +
   scale_linetype_manual(values=c("dotted","solid")) + 
   xlab("Time") + 
-  ylab(parse(text = paste0('"Growth rate 95% HPI "', '(~day^-1)')))  + 
-  theme(text=element_text(size = 22),axis.line = element_line(color="black", size = 0.5),
+  ylab(expression("Growth rate 95% HPI [d"^{-1}*"]"))  + 
+  theme(text=element_text(size = 22),
+        axis.line = element_line(size = 0.5),
           panel.border = element_blank(),
-          panel.background = element_blank(),panel.grid.major.x = element_blank(),legend.position = c(0.7,0.7),legend.title = element_blank()) 
+          panel.background = element_blank(),
+        panel.grid.major.x = element_blank(),
+        legend.position = c(0.7,0.7),legend.title = element_blank()) 
 
+p_growth
 ggsave(figure_path, p_growth , width = 50, height = 15, units = "cm", dpi = 800)
 
 
