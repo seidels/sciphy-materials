@@ -9,6 +9,9 @@ Then run TODO , to generate figures B and E, and `plot_figure_5_D.R` to generate
 
 ## Generate alignments
 
+*Please note that the data will only be made publicly available upon publication.* In the meantime, we are sharing empty placeholder files, such as `processed_data/cell_by_tape.RDS`, to demonstrate the structure of the data pipeline.
+
+
 To generate the alignment underlying the analyses, run the `run.sh` executing the data preprocessing pipeline to be found in  `./processing_scripts/`.
 
 ## Supplemental figures
