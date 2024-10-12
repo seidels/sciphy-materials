@@ -12,11 +12,13 @@ Figure 3 builds on 3 analyses.
 
 3) Estimating one growth rate over the experiment, while co-estimating the sampling proportion. TODO
 
-Each analysis xml can be found under the `inference_output` directory. 
+Each analysis xml can be found under the `inference_output` directory. Each analysis can be run by running beast with the sciphy package installed:
+
+`beast -seed [seed] [analysis_xml]`
 
 # Generate alignment
 
-The 3 analyses use the same underlying data. To filter the data, located in `data`, pre-process it and generate the alignments, run the `pre_processing_scripts/run.sh` script.
+To generate the alignments underlying these analyses, please not that all analyses use the same set of alignments. This set can be generated as follows: To filter the data, located in `data`, pre-process it and generate the alignments, run the `pre_processing_scripts/run.sh` script.
 
 You can find the alignment under `pre_processed_data/1-alignment_seed1.txt`. 
 
