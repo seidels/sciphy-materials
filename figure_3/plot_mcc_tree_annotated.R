@@ -55,7 +55,7 @@ dat = tree@data
 p = ggtree(tree, root.position = 0.35223, size=0.05)  +
   geom_hilight(node=1457, fill="steelblue", alpha=0.5)+
   geom_rootedge(rootedge = 0.3522, size=0.05) + theme_tree2() + 
-  theme(axis.text.x  = element_text(size = text_size-5),
+  theme(axis.text.x  = element_text(size = 6),
         axis.title.x  = element_text(size = text_size))+
   xlab("Time [d]")
 p
@@ -69,7 +69,7 @@ subdat = sub@data
 subtree = get.tree(sub)
 
 # sub tree with negative branch lengths
-sub_tree_plot = ggtree(sub, root.position = 4.48) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
+sub_tree_plot = ggtree(sub, root.position = 4.48) + theme_tree2() + geom_rootedge(rootedge = 4.88) +  
   geom_range('height_0.95_HPD', color='grey', size=3, alpha=.4)+
   geom_nodelab(aes(x=branch, label=round(posterior, 2)), vjust=-.1, size=3) 
 sub_tree_plot
@@ -95,26 +95,26 @@ targetBCs = unique(edits$TargetBC)
 targetbc_edits_list =  vector(mode = "list", length = length(targetBCs))
 
 for (targetBC in targetBCs){
-
+  
   print(targetBC)
   edits_tbc = edits[ edits$TargetBC == targetBC, ]
   edits_tbc = edits_tbc[which(edits_tbc$Cell %in% cell_ids$V1), ]
-
+  
   # add cell ids ;
   ## order cell barcodes alphabetically and the reuse the tip labels from cell ids
   edits_tbc = edits_tbc[order(edits_tbc$Cell), ]
   rownames(edits_tbc) = cell_ids$tip_label
   edits_tbc = edits_tbc[ , 4:8]
-
+  
   # convert edits from integers to trinucleotides
   edits_tbc_trinucl = data.frame(Site1 = sapply(edits_tbc$Site1, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
-                             Site2 = sapply(edits_tbc$Site2, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
-                             Site3 = sapply(edits_tbc$Site3, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
-                             Site4 = sapply(edits_tbc$Site4, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
-                             Site5 = sapply(edits_tbc$Site5, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)})
+                                 Site2 = sapply(edits_tbc$Site2, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site3 = sapply(edits_tbc$Site3, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site4 = sapply(edits_tbc$Site4, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site5 = sapply(edits_tbc$Site5, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)})
   )
   rownames(edits_tbc_trinucl) = rownames(edits_tbc)
-
+  
   targetbc_edits_list[[ctr]] = edits_tbc_trinucl
   ctr = ctr + 1
 }
@@ -122,10 +122,10 @@ for (targetBC in targetBCs){
 ## plot tree with edit matrix
 #basic_tree = ggtree(sub,layout="ellipse")
 
-sub_tree_plot = ggtree(sub, root.position = 4.48) + theme_tree2() + geom_rootedge(rootedge = 3.8) +  
+sub_tree_plot = ggtree(sub, root.position =  4.48) + theme_tree2() + geom_rootedge(rootedge =  4.48) +  
   geom_range('height_0.95_HPD', color='grey', size=3, alpha=.4)+
-  geom_nodepoint(aes(size=posterior))+ scale_size(range = c(0.1, 2))
-  
+  geom_nodepoint(aes(size=posterior))+ scale_size(range = c(0.1, 2), name = "Posterior support") 
+
 
 sub_tree_plot
 
@@ -133,25 +133,24 @@ for (i in 1:length(targetBCs)){
   print(i)
   labels <- c(targetBCs[i],rep("",ncol(targetbc_edits_list[[i]])-1))
   annotated_basic_tree = gheatmap(sub_tree_plot, targetbc_edits_list[[i]],
-                                  hjust=0,colnames_offset_y=-10,colnames_offset_x=-10,
+                                  hjust=0,colnames_offset_y=-10,colnames_offset_x=0,
                                   colnames_position = "bottom",width = 0.05, offset = 1.1 * (i-1),
-                                  custom_column_labels = labels,font.size=2.5) + coord_cartesian(clip="off")
+                                  custom_column_labels = labels,font.size=2.5) + coord_cartesian(clip="off") 
   sub_tree_plot = annotated_basic_tree
 }
-sub_tree_plot
+sub_tree_plot 
 
 
 basic_tree_bars <- sub_tree_plot +
-  theme(legend.position = "top",legend.text = element_text(size=text_size-0.5),
-        legend.title = element_blank()) + guides(fill = guide_legend(nrow = 1))
-
-basic_tree_bars
-label_segs <- data.frame(xstart=seq(from=25+0.05,to=35-0.1,by=26/13),xend=seq(from=25+0.2,to=35-0.1,by=26/13)+1)
+  theme(legend.position = "top",legend.text = element_text(size=text_size-2),
+        legend.spacing.x = unit(0.01, 'cm'),legend.key.size = unit(0.2, 'cm')) + guides(fill = guide_legend(nrow = 2)) 
+#basic_tree_bars
+label_segs <- data.frame(xstart=seq(from=25,to=39.5,by= 14.5/13),xend=seq(from=25,to=39.5,by= 14.5/13) +0.6)
 
 #adding small bars and tape labels
 for(i in 1:13) {
-basic_tree_bars <- basic_tree_bars + geom_segment(x=label_segs$xstart[i],y=-5,
-                                                  xend=label_segs$xend[i],yend=-5,color="black")
+  basic_tree_bars <- basic_tree_bars + geom_segment(x=label_segs$xstart[i],y=-5,
+                                                    xend=label_segs$xend[i],yend=-5,color="black")
 }
 basic_tree_bars
 
