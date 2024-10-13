@@ -180,7 +180,7 @@ ggsave(paste0(figure_dir, "growth_rate_sampling.png"), p_growth, width = 4.76, h
 # --------------------
 #  plot the samplingProportion
 # --------------------
-
+options(scipen = 5) 
 #extract and substract the birth and death rates
 bd_rates <- typewriter[,"samplingProportion"] 
 
