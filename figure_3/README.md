@@ -28,6 +28,6 @@ You can find the alignment under `pre_processed_data/1-alignment_seed1.txt`.
 # Visualising results
 
 Figure 3 B-D and F-G build on analysis (1). 
-To reproduce figure 3 B-D, run the `plot_inference_results.R` script and for F-G use the `plot_mcc_tree_annotated.R` scripts.
+To reproduce figure 3 B-C, run the `plot_inference_results.R` script and for F-G use the `plot_mcc_tree_annotated.R` scripts.
 
-To reproduce figure 3, E, which builds on analysis (3), run `plot_inference_results_sampling.R`.
+To reproduce figure 3 D-E, which builds on analysis (3), run `plot_inference_results_sampling.R`.
