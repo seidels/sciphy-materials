@@ -33,10 +33,6 @@ typewriter <- read.table(typewriter_file, header = T)
 
 figure_dir = "plots/"
 
-# -----------------------------
-#  plot insertion probabilities
-# -----------------------------
-
 #extract insertion probabilities from the full dataframe
 insert_probs <- typewriter[,c(7:25)]
 trinucleotides_names <- c("CAT","CCG","GCC","ATA","GAT","ACG","ACA","TCG","TAT","GCT","CTA","TGT","AGA","TAA","CAG","TAG","GAG","ACC","GCG")
@@ -44,7 +40,7 @@ trinucleotides_names <- c("CAT","CCG","GCC","ATA","GAT","ACG","ACA","TCG","TAT",
 #reorder by median
 names(insert_probs) <- trinucleotides_names
 insert_probs <- insert_probs[order(-sapply(insert_probs, median))]
-insert_probs <- bind_cols(insert_probs,Prior=extraDistr::rdirichlet(nrow(insert_probs), rep(1.5,19))[,2])
+insert_probs <- bind_cols(insert_probs,Prior=rdirichlet(nrow(insert_probs), rep(1.5,19))[,2])
 insert_probs_medians <- sapply(insert_probs,median)
 insert_probs_low <- as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.025)}))
 insert_probs_up <-  as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.975)}))
@@ -67,16 +63,16 @@ p_inserts <-  ggplot(datafra) +
   geom_errorbar(aes(x=name,ymin=low, ymax=up), width=.2,
                 position=position_dodge(.9)) +
   #ggtitle("Insert probabilities") +
-
-  coord_cartesian(ylim=c(0,0.175),expand = FALSE) +
+  
+  coord_cartesian(ylim=c(0,0.2),expand = FALSE) +
   theme(axis.text.x = element_text(angle = 90, hjust = 0.3, vjust = 0.2,
                                    margin = margin(l = 20, r = 20), size = (text_size-4)),
         axis.text.y = element_text(size = 5, margin = margin(r = -0.1, l=0)),
         axis.title.y = element_text(size = text_size),
-
-                                                          panel.grid.minor = element_blank(),
-                                                          panel.border = element_blank(),
-                                                          panel.background = element_blank(),
+        
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
         panel.grid.major.x = element_blank(),axis.title.x = element_blank())
 
 
@@ -121,8 +117,7 @@ segments <- data.frame(xstart=c(2,5),xstop=c(4,13),ystart=c(0.25,0.21),ystop=c(0
 p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
   theme_classic() +
   geom_violin(draw_quantiles =  c(0.5)) +
-  ylab(parse(text = paste0('"Posterior edit rate "', '[~d^-1]'))) +
-
+  ylab(expression("Posterior edit rate [" * d^-1 * "]"))+
   theme(legend.position = "none") +
   scale_y_continuous(breaks = c(0, 0.1, 0.2, 0.3))+
   scale_fill_manual(values=c(c("#0A0A82",rep("#404085",3),rep("#7C7CA3",9)),"#E1E1F7")) +
@@ -133,10 +128,10 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.background = element_blank(),panel.grid.major.x = element_blank(),
-        axis.text.x = element_text(angle = 90, size = (text_size-4), margin= margin(l = -0.5, r = -0.5, b=-3)), #vjust = 0.3, hjust = 0.5),
-        axis.title.x = element_blank() ) +
-
-  annotate("text", x = 1, y = 0.35, label = "2X") +
+        axis.text.x = element_text(angle = 70, vjust = 0.87, hjust=1,size = (text_size-4), margin= margin(l = -0.5, r = -0.5, b=-3)), #vjust = 0.3, hjust = 0.5),
+        axis.title.x = element_blank(), axis.title.y = element_text(vjust = 0.7, hjust = 1) ) +
+  
+  annotate("text", x = 1, y = 0.36, label = "2X") +
   annotate("text", x = 3, y = 0.27, label = "4X") +
   annotate("text", x = 9, y = 0.24, label = "5X") +
   #ggtitle("Editing rate per tape")+
@@ -145,7 +140,7 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
 
 
 ggsave(paste0(figure_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
-  # --------------------
+# --------------------
 #  plot the growth rate
 # --------------------
 
@@ -153,17 +148,17 @@ ggsave(paste0(figure_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 
 bd_rates <- typewriter[,"birthRate"] - typewriter[,"deathRate"]
 
 #add a prior column
-bd_rates <- bind_cols(Rate=bd_rates,Prior= rlnorm(length(bd_rates), meanlog = -0.6, sdlog = 1) - rlnorm(length(bd_rates), meanlog = -2, sdlog = 1) )
+bd_rates <- bind_cols(Estimate=bd_rates,Prior= rlnorm(length(bd_rates), meanlog = -0.6, sdlog = 1) - rlnorm(length(bd_rates), meanlog = -2, sdlog = 1) )
 bd_rates_long <- pivot_longer(bd_rates,seq(1,ncol(bd_rates)))
 
 #order columns
-bd_rates_long <- mutate(bd_rates_long,name = fct_relevel(name,"Rate","Prior"))
+bd_rates_long <- mutate(bd_rates_long,name = fct_relevel(name,"Estimate","Prior"))
 
 p_growth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
   theme_classic() +
   geom_violin(draw_quantiles = 0.5) +
   theme(legend.position = "none" ) +
-  ylab(expression("Constant growth rate [" * d^-1 * "]"))+
+  ylab(expression("Growth rate [" * d^-1 * "]"))+
   coord_cartesian(ylim = c(-0.1,0.9),expand = TRUE) +
   #ggtitle("Growth rate")+
   #theme(plot.title = element_text(hjust=0.5)) +
@@ -174,4 +169,3 @@ p_growth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
 
 
 ggsave(paste0(figure_dir, "growth_rate.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)
-
