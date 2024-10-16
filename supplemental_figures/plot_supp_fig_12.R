@@ -5,7 +5,7 @@
 ##
 
 ## set working directory 
-pic_dir = "~/plots/"
+pic_dir = "plots/"
 
 # set figure settings
 text_size=10
@@ -44,7 +44,7 @@ get_median_and_hpd = function(growth){
 
 
 #load the raw data obtained from Merle et. al, 2024
-merle_raw <- read_json(path="data/MerleEtAl_Extended_Data_Fig_2b_raw_data.json", simplifyVector = TRUE)
+merle_raw <- read_json(path="../figure_5/data/MerleEtAl_Extended_Data_Fig_2b_raw_data.json", simplifyVector = TRUE)
 merle_raw <- merle_raw$data
 
 #transform cell counts to growth rates. There are 23 replicates, with each 5 time points measurements
@@ -121,7 +121,7 @@ timeline_changes <- c(0.0,4, 7,8, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "combined_3-mGASv2-skyline-ou_1000000.log"
+log_file <- "../figure_5/inference_output/3-mGASv2-skyline-ou.10burnin.combined.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:4)] - typewriter_mcmc[,paste0("deathRate.",1:4)]
@@ -135,7 +135,7 @@ timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "combined_4-mGASv2-skyline-ou_1000000.log"
+log_file <- "../figure_5/inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]
