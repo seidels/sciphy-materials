@@ -19,7 +19,7 @@ First, generate the inputs for TreeDist and treespace:
 1) Thin down the tree traces obtained from running `1-typewriter_clockPerSite_13Sites_1000Cells_DataSet1.xml`. To do so, run: `logcombiner -resample 3000000 -log combined_clockPerTarget_sampling_DataSet1.log -o clockPerTarget_sampling_DataSet1_3000000.log` and `logcombiner -resample 3000000 -log combined_clockPerTarget_sampling_DataSet1.log -o clockPerTarget_sampling_DataSet1_3000000.trees`. This is needed as mapping distances between very large sets of trees is not tractable.
 2) Build a UPGMA tree on the alignment. For this, run `build_UPGMA_Dataset1.R`. 
 
-Second, calculate distances between these sets of trees and map these distances in 2D by running : `run_TreeDist_CI.R`, `run_TreeDist_PI.R`, `run_TreeDist_RF.R`. 
+Second, calculate distances between these sets of trees and map these distances in 2D by running : `run_TreeDist_CI.R`. (Also `run_TreeDist_PI.R`, `run_TreeDist_RF.R` to generate outputs for the supplemental figures). 
 
 # Panel B
 
@@ -37,4 +37,4 @@ To generate panel C, 2 more SciPhy analyses that estimate the growth rate on a f
 # Visualising results
 
 Once all of these scripts have been run and their outputs are in `inference_output`, the entire figure 4 is reproduced by running `plot_figure_4.R`. 
-Appendix figures 3-6 are generated with by running `plot_TreeDist.R` and `plot_treespace.R` (for the weighted Robinson Foulds distance).
+Appendix figures 3-6 are generated with the outputs described for Panel A by running `create_supp_figs_3_4_5.R` and `create_supp_figs_6.R` in supplemental_figures. 
