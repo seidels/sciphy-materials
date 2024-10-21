@@ -27,11 +27,15 @@ library(scales)
 library(magick)
 
 #load the combined log file
-#typewriter_file <- "/Volumes/stadler/People/Sophie_Antoine_shared/cell_culture/13_tbcs/clock_per_target/1000_cells_1/combined/combined.log"
-typewriter_file <- "inference_output/1-combined.log"
+#typewriter_file <- "/Volumes/stadler/People/Sophie_Antoine_shared/cell_culture/13_tbcs/clock_per_target//combined/combined.log"
+typewriter_file <- "inference_output/3-combined.log"
 typewriter <- read.table(typewriter_file, header = T)
 
 figure_dir = "plots/"
+
+# -----------------------------
+#  plot insertion probabilities
+# -----------------------------
 
 #extract insertion probabilities from the full dataframe
 insert_probs <- typewriter[,c(7:25)]
@@ -63,24 +67,27 @@ p_inserts <-  ggplot(datafra) +
   geom_errorbar(aes(x=name,ymin=low, ymax=up), width=.2,
                 position=position_dodge(.9)) +
   #ggtitle("Insert probabilities") +
-  
+
   coord_cartesian(ylim=c(0,0.2),expand = FALSE) +
   theme(axis.text.x = element_text(angle = 90, hjust = 0.3, vjust = 0.2,
                                    margin = margin(l = 20, r = 20), size = (text_size-4)),
         axis.text.y = element_text(size = 5, margin = margin(r = -0.1, l=0)),
         axis.title.y = element_text(size = text_size),
-        
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
+
+                                                          panel.grid.minor = element_blank(),
+                                                          panel.border = element_blank(),
+                                                          panel.background = element_blank(),
         panel.grid.major.x = element_blank(),axis.title.x = element_blank())
 
 
-ggsave(paste0(figure_dir, "insert_probs.png"), p_inserts, width = 4.76, height = 7.14, units = "cm", dpi = 300)
+ggsave(paste0(figure_dir, "insert_probs_sampling.png"), p_inserts, width = 4.76, height = 7.14, units = "cm", dpi = 300)
 
-# --------------------
+  # --------------------
 #  plot the clock rates
 # --------------------
+
+typewriter_file <- "combined.log"
+typewriter <- read.table(typewriter_file, header = T)
 
 #extract the clock rate from the tract
 clock_rate <- typewriter[,c(29:41)]
@@ -130,7 +137,7 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
         panel.background = element_blank(),panel.grid.major.x = element_blank(),
         axis.text.x = element_text(angle = 70, vjust = 0.87, hjust=1,size = (text_size-4), margin= margin(l = -0.5, r = -0.5, b=-3)), #vjust = 0.3, hjust = 0.5),
         axis.title.x = element_blank(), axis.title.y = element_text(vjust = 0.7, hjust = 1) ) +
-  
+
   annotate("text", x = 1, y = 0.36, label = "2X") +
   annotate("text", x = 3, y = 0.27, label = "4X") +
   annotate("text", x = 9, y = 0.24, label = "5X") +
@@ -139,8 +146,8 @@ p_clock_pos <- ggplot(clock_rate_long,aes(x=name,value,fill=name)) +
   geom_segment(data=segments,aes(x=xstart,xend=xstop,y=ystart,yend=ystop),inherit.aes = FALSE)
 
 
-ggsave(paste0(figure_dir,"clock_rate.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
-# --------------------
+ggsave(paste0(figure_dir,"clock_rate_sampling.png"), p_clock_pos, width = 9.52, height = 4.2, units = "cm", dpi = 300)
+  # --------------------
 #  plot the growth rate
 # --------------------
 
@@ -168,4 +175,34 @@ p_growth <- ggplot(bd_rates_long, aes(x=name,value,fill=name)) +
         panel.grid.major.x = element_blank(),axis.title.x = element_blank())
 
 
-ggsave(paste0(figure_dir, "growth_rate.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)
+ggsave(paste0(figure_dir, "growth_rate_sampling.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)
+
+# --------------------
+#  plot the samplingProportion
+# --------------------
+options(scipen = 5) 
+#extract and substract the birth and death rates
+bd_rates <- typewriter[,"samplingProportion"] 
+
+#add a prior column
+bd_rates <- bind_cols(Estimate=bd_rates,Prior= rlnorm(length(bd_rates), meanlog = -7.4, sdlog = 1.2)  )
+bd_rates_long <- pivot_longer(bd_rates,seq(1,ncol(bd_rates)))
+
+#order columns
+bd_rates_long <- mutate(bd_rates_long,name = fct_relevel(name,"Estimate","Prior"))
+
+p_growth <- ggplot(bd_rates_long, aes(x=name,y=value,fill=name)) +
+  theme_classic() +
+  geom_violin(draw_quantiles = 0.5) +
+  theme(legend.position = "none" ) +
+  ylab(expression("Sampling proportion"))+
+  coord_cartesian(ylim = c(0.0,0.0005),expand = TRUE) +
+  #ggtitle("Growth rate")+
+  #theme(plot.title = element_text(hjust=0.5)) +
+  scale_fill_manual(values=c("white","#E1E1F7")) + 
+  theme(text=element_text(size = text_size),panel.grid.minor = element_blank(),
+        panel.border = element_blank(), panel.background = element_blank(),
+        panel.grid.major.x = element_blank(),axis.title.x = element_blank())
+
+
+ggsave(paste0(figure_dir, "sampling_proportion.png"), p_growth, width = 4.76, height = 4.76, units = "cm", dpi = 300)

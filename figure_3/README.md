@@ -10,7 +10,8 @@ Figure 3 builds on 3 analyses.
 2) Estimating a dynamic (or time-varying) growth rate over the experiment, while the sampling proportion is set to the experimentally reported one.
 `2-typewriter_SKY_OU_clockPerSite_13Sites_1000Cells_DataSet1.xml`
 
-3) Estimating one growth rate over the experiment, while co-estimating the sampling proportion. TODO
+3) Estimating one growth rate over the experiment, while co-estimating the sampling proportion. 
+`3-typewriter_sampling_clockPerSite_13Sites_1000Cells_DataSet1.xml`
 
 Each analysis xml can be found under the `inference_output` directory. Each analysis can be run by running beast with the sciphy package installed:
 
@@ -27,6 +28,6 @@ You can find the alignment under `pre_processed_data/1-alignment_seed1.txt`.
 # Visualising results
 
 Figure 3 B-D and F-G build on analysis (1). 
-To reproduce figure 3 B-D, run the `plot_inference_results.R` script and for F-G use the `plot_mcc_tree_annotated.R` scripts.
+To reproduce figure 3 B-C, run the `plot_inference_results.R` script and for F-G use the `plot_mcc_tree_annotated.R` scripts.
 
-To reproduce figure 3, E, which builds on analysis (3), run TODO.
+To reproduce figure 3 D-E, which builds on analysis (3), run `plot_inference_results_sampling.R`.
