@@ -1,11 +1,8 @@
 # Figure 5
 
-To generate figure 5C, the filtered data can be plotted using the script 
+To generate panel C, the filtered data can be plotted using the script `plot_figure_5_C.R`
 
-
-To generate the plots B, D-E in figure 5, the analysis on 2 time change points detailed in `inference_output/4-mGASv2-skyline-ou_1000000.xml` has to be run.
-
-Then run TODO , to generate figures B and E, and `plot_figure_5_D.R` to generate figure 5D.
+To generate the plots in panels B, D-E, the analysis on 2 time change points detailed in `inference_output/4-mGASv2-skyline-ou.xml` has to be run first using SciPhy. The plots are then generated with their corresponding R scripts `plot_figure_5_B.R`, `plot_figure_5_D.R`, `plot_figure_5_E.R`
 
 ## Generate alignments
 
