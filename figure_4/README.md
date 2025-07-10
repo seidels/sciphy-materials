@@ -2,7 +2,9 @@
 
 # General description
 
-Figure 4 compares estimates using SciPhy with ones obtained with UPGMA on the HEK293T dataset by:
+Figure 4 compares estimates using SciPhy with ones obtained with UPGMA on the HEK293T dataset and shows a benchmark of SciPhy against existing phylogenetic tools.
+
+## SciPhy UPGMA comparison on real data
 
 1) Panel A + Appendix Figures 3-6: Visualising the differences in tree estimates across both methods by mapping distances between UPGMA and SciPhy estimates in 2D, using R packages TreeDist and treespace. 
 2) Panel B: Visualising differences in the corresponding branch lengths by plotting the LTT plot for the estimated trees.
@@ -38,3 +40,6 @@ To generate panel C, 2 more SciPhy analyses that estimate the growth rate on a f
 
 Once all of these scripts have been run and their outputs are in `inference_output`, the entire figure 4 is reproduced by running `plot_figure_4.R`. 
 Appendix figures 3-6 are generated with the outputs described for Panel A by running `create_supp_figs_3_4_5.R` and `create_supp_figs_6.R` in supplemental_figures. 
+
+## SciPhy vs existing methods benchmark
+All under  benchmark_simulated_data.
