@@ -24,7 +24,7 @@ output_dir = "plots/"
 
 
 ## define input files
-tree_file = "inference_output/4-mGASv2-skyline-ou.mcc.tree"
+tree_file = "inference_output/4-mGASv2-skyline-ou.10burnin.100000thinned.combined.ccd.tree"
 
 ## load input
 tree = read.beast(file = tree_file)
@@ -34,8 +34,8 @@ dat = tree@data
 origin_length = 11 - round(max(dat$height), digits = 3)
 
 # plot tree
-p = ggtree(tree, root.position = origin_length, size=0.05)  +
-  geom_rootedge(rootedge = origin_length - 0.001, size=0.05) + 
+p = ggtree(tree, root.position = origin_length, size=0.05,options(ignore.negative.edge=FALSE))  +
+  geom_rootedge(rootedge = origin_length, size=0.05) + 
   theme_tree2() + 
   theme(axis.text.x  = element_text(size = text_size),
         axis.title.x  = element_text(size = text_size),
@@ -46,4 +46,4 @@ p = ggtree(tree, root.position = origin_length, size=0.05)  +
   xlab("Time [d]")
 p
 
-ggsave(paste0(output_dir,"fig_5_e.png"), p, width = 14.28, height = 8, units = "cm", dpi = 300)
+ggsave(paste0(output_dir,"fig_5_e.png"), p, width=12.8, height = 11, units = "cm", dpi = 300)
