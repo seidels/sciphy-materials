@@ -1,7 +1,6 @@
-## Script name: plot_figure_3
+## Script name: plot_figure_4_A_C
 ##
-## Purpose of script: Plot a figure that summarises how SciPhy compares with UPGMA
-##
+## Purpose of script: Plot a figure that summarises how SciPhy compares with UPGMA for the HEK293T analysis
 ##
 
 ## set output directory for the plot
@@ -79,14 +78,14 @@ source("plot_trees_in_2d_with_likelihoods.R")
 #extract likelihood values corresponding to the subsample of trees:
 
 #### preprocess log to extract the correct likelihood values to plot ####
-sciphy_trees <- ape::read.nexus(file = "~/typewriter_analysis/paper_figures/figure_4/inference_output/TREES_ATTEMPT.trees")
+sciphy_trees <- ape::read.nexus(file = "~/typewriter_analysis/paper_figures/figure_4/inference_output/clockPerTarget_sampling_DataSet1_3000000.trees")
 
 sample_nr_tree <- as.numeric(unlist(strsplit(names(sciphy_trees),"_"))[seq(2,2*length(sciphy_trees),by=2)])
 
 ## Load log data and extract likelihood values corresponding to the matching sample nrs
-subsampled_log <- read.table("inference_output/LOG_ATTEMPT.log",header = TRUE)
+subsampled_log <- read.table("inference_output/clockPerTarget_sampling_DataSet1_3000000.log",header = TRUE)
 step_tree <- sample_nr_tree[2] - sample_nr_tree[1]
-step_log <- subsample_log$Sample[2] - subsample_log$Sample[1]
+step_log <- subsampled_log$Sample[2] - subsampled_log$Sample[1]
 
 ##check if the logging frequency is the same
 step_tree == step_log
@@ -140,83 +139,80 @@ plot1_4 <-  plot1_4 + theme(text=element_text(size = text_size),panel.border = e
 
 col_1 <- cowplot::plot_grid(plot1_2+ theme(plot.title = element_blank()),plot1_3 + theme(plot.title = element_blank()),plot1_4+ theme(plot.title = element_blank()) ,ncol = 1,align = "h",label_size=text_size,rel_widths = c(1,1,1),rel_heights = c(1,1,1))
 
-ggsave(paste0(pic_dir,"col_1_CCD.pdf"),
-       row_1, width = 14.28, height = 7.14, units = "cm", dpi = 300)
+#ggsave(paste0(pic_dir,"col_1_CCD.pdf"),row_1, width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
 # ----------------------------------------
 ## Plot the LTT plot: UPGMA against SciPhy sample 
 ## ----------------------------------------
 ##
-##read in SciPhy trees
-trees_constant <- ape::read.nexus(file = "inference_output/clockPerTarget_sampling_DataSet1_3000000.trees")
+##read in trees from SciPhy analysis
+trees_sciphy <- ape::read.nexus(file = "inference_output/clockPerTarget_sampling_DataSet1_3000000.trees")
 
-##read in upgma tree
+##read in the log trace for the SciPhy analysis
+log_sciphy <- read.table("../figure_3/inference_output/combined_clockPerTarget_sampling_DataSet1.log", header = T)
+
+##read in the CCD corresponding to the SciPhy analysis
+CCD_sciphy <- ape::read.nexus(file = "inference_output/CCD_median_heights_clockPerTarget_sampling_DataSet1_3000000.tree")
+
+##read in UPGMA tree
 upgma <- ape::read.tree(file = "inference_output/UPGMAtree_1000.txt")
 
-##read in log_constant
-log_constant <- read.table("../figure_3/inference_output/combined_clockPerTarget_sampling_DataSet1.log", header = T)
+##read in the CCD of the UPGMA tree with branch lengths scaled with SciPhy
+CCD_upgma_sciphy <- ape::read.nexus(file = "inference_output/CCD_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling_3000000.tree")
 
 #get the median posterior tree height
-median_posterior_height_constant <- median(log_constant[,"treeHeight.t.alignment"])
+median_sciphy_posterior_height <- median(log_sciphy[,"treeHeight.t.alignment"])
 
-##read in the MCC_constant tree
-MCC_constant <- ape::read.nexus(file = "inference_output/CCD_median_heights_clockPerTarget_sampling_DataSet1_3000000.tree")
-
-##read in the MCC_constant tree
-MCC_upgma_sciphy <- ape::read.nexus(file = "inference_output/CCD_combined_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling_MCC.tree")
-
-
-
-##read in scaled upgma
-upgma_scaled_constant <- upgma
-upgma_height <- tree_height_calc(upgma)
-upgma_scaled_constant$edge.length <- upgma_scaled_constant$edge.length * (median_posterior_height_constant/upgma_height)
+##scale UPGMA with median posterior sciphy tree heigh
+upgma_scaled <- upgma
+upgma_height <- max(nodeHeights(upgma))
+upgma_scaled$edge.length <- upgma_scaled$edge.length * (median_sciphy_posterior_height/upgma_height)
 
 #write the scaled upgma
-#ape::write.tree(upgma_scaled_constant, "UPGMA_scaled_clock_per_target_sampling.txt")
+#ape::write.tree(upgma_scaled, "UPGMA_scaled_clock_per_target_sampling.txt")
 
-#extract ltt coordinates from all trees_constant
-all_ltt_constant <- c()
+#extract ltt coordinates from all trees_sciphy
+all_ltt <- c()
 #record at what time point each tree reaches 500 cells and 1000 cells
 all_500_times <- c()
 all_1000_times <- c()
-for (i in 1:length(trees_constant)) {
-  coords <- ltt.plot.coords(trees_constant[[i]])
+for (i in 1:length(trees_sciphy)) {
+  coords <- ltt.plot.coords(trees_sciphy[[i]])
   all_500_times <- c(all_500_times,coords[500,'time'])
   all_1000_times <- c(all_1000_times,coords[1000,'time'])
-  all_ltt_constant <- rbind(all_ltt_constant, cbind(coords,number=rep(i,nrow(coords))))
+  all_ltt <- rbind(all_ltt, cbind(coords,number=rep(i,nrow(coords))))
 }
 
 #add "off the shelf" upgma 
 ltt_upgma <- ltt.plot.coords(upgma)
-all_ltt_constant <- rbind(all_ltt_constant, cbind(ltt_upgma,rep(length(trees_constant)+1,nrow(ltt_upgma))))
+all_ltt <- rbind(all_ltt, cbind(ltt_upgma,rep(length(trees_sciphy)+1,nrow(ltt_upgma))))
 
 ##add the scaled upgma (with the height scaled with the median of the "full inference" sciphy analysis)
-ltt_upgma_scaled_constant <- ltt.plot.coords(upgma_scaled_constant)
-all_ltt_constant <- rbind(all_ltt_constant, cbind(ltt_upgma_scaled_constant,rep(length(trees_constant)+2,nrow(ltt_upgma_scaled_constant))))
+ltt_upgma_scaled <- ltt.plot.coords(upgma_scaled)
+all_ltt <- rbind(all_ltt, cbind(ltt_upgma_scaled,rep(length(trees_sciphy)+2,nrow(ltt_upgma_scaled))))
 
 #MCC main analysis, full inference
-ltt_MCC_constant <- ltt.plot.coords(MCC_constant)   
-all_ltt_constant <- rbind(all_ltt_constant, cbind(ltt_MCC_constant,rep(length(trees_constant)+3,nrow(ltt_MCC_constant))))
+ltt_CCD_sciphy <- ltt.plot.coords(CCD_sciphy)   
+all_ltt <- rbind(all_ltt, cbind(ltt_CCD_sciphy,rep(length(trees_sciphy)+3,nrow(ltt_CCD_sciphy))))
 
 #MCC UPGMA scaled branch lengths with SCIPHY
-ltt_mcc_upgma_sciphy <- ltt.plot.coords(MCC_upgma_sciphy)   
-all_ltt_constant <- rbind(all_ltt_constant, cbind(ltt_mcc_upgma_sciphy,rep(length(trees_constant)+4,nrow(ltt_mcc_upgma_sciphy))))
-all_ltt_constant <- data.frame(all_ltt_constant)
+ltt_CCD_upgma_sciphy <- ltt.plot.coords(CCD_upgma_sciphy)   
+all_ltt <- rbind(all_ltt, cbind(ltt_CCD_upgma_sciphy,rep(length(trees_sciphy)+4,nrow(ltt_CCD_upgma_sciphy))))
+all_ltt <- data.frame(all_ltt)
 
 #making times start at zero (instead of a negative timescale)
-all_ltt_constant$time <- all_ltt_constant$time + 25
+all_ltt$time <- all_ltt$time + 25
 
 #create another column to colour by type  
-all_ltt_constant$type <- c(rep("SciPhy",length(which(all_ltt_constant$number<=(length(trees_constant))))),rep("UPGMA",length(which(all_ltt_constant$number==(length(trees_constant)+1)))),
-                           rep("UPGMA root",length(which(all_ltt_constant$number==(length(trees_constant)+2)))),
-                           rep("SciPhy CCD",length(which(all_ltt_constant$number==(length(trees_constant)+3)))),
-                           rep("UPGMA + SciPhy",length(which(all_ltt_constant$number==(length(trees_constant)+4)))))
+all_ltt$type <- c(rep("SciPhy",length(which(all_ltt$number<=(length(trees_sciphy))))),rep("UPGMA",length(which(all_ltt$number==(length(trees_sciphy)+1)))),
+                           rep("UPGMA root",length(which(all_ltt$number==(length(trees_sciphy)+2)))),
+                           rep("SciPhy CCD",length(which(all_ltt$number==(length(trees_sciphy)+3)))),
+                           rep("UPGMA + SciPhy",length(which(all_ltt$number==(length(trees_sciphy)+4)))))
 
 #define colors
 cols <- c("SciPhy" = "#56996E", "SciPhy CCD" = "black", "UPGMA" = "red","UPGMA root" = "#E07E5E", "UPGMA + SciPhy" = "yellow" )
 
-ltt_all <-  ggplot(all_ltt_constant,aes(x=time,y=N,group=number,colour=type,alpha = type)) + 
+ltt_all <-  ggplot(all_ltt,aes(x=time,y=N,group=number,colour=type,alpha = type)) + 
   geom_step() + 
   theme_bw() + 
   scale_color_manual(values = cols) + 
@@ -226,8 +222,7 @@ ltt_all <-  ggplot(all_ltt_constant,aes(x=time,y=N,group=number,colour=type,alph
 
 legend_1 <- get_legend(ltt_all) 
 row_2 <- cowplot::plot_grid(ltt_all + theme(legend.position = "none"),legend_1,ncol=2,nrow=1, rel_widths = c(1.0,0.4))
-ggsave(paste0(pic_dir,"row_2_CCD.pdf"), row_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
-
+#ggsave(paste0(pic_dir,"row_2_CCD.pdf"), row_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
 
 # ---------------------------------------------------------
@@ -299,9 +294,9 @@ prior =melt(prior, id.vars = "tree")
 growth_rates = rbind(growth_rates, prior)
 
 # Define order
-growth_rates$tree = factor(growth_rates$tree, levels=c("Prior","SciPhy","Fixed sampling", "UPGMA", "UPGMA root","UPGMA +","SciPhy MCC"))
+growth_rates$tree = factor(growth_rates$tree, levels=c("Prior","SciPhy","Fixed sampling", "UPGMA", "UPGMA root","UPGMA +"))
 #define colors
-cols <- c("Prior" = "white","Fixed sampling"="#B7CC62","SciPhy" = "#56996E", "UPGMA" = "red","UPGMA root" = "#E07E5E","SciPhy MCC" = "grey","UPGMA +" = "yellow","UPGMA root" = "pink","SciPhy MCC"="grey")
+cols <- c("Prior" = "white","Fixed sampling"="#B7CC62","SciPhy" = "#56996E", "UPGMA" = "red","UPGMA root" = "#E07E5E","UPGMA +" = "yellow","UPGMA root" = "pink")
 
 row_3 <- ggplot(growth_rates, aes(x=tree, y=value, fill = tree)) +
   theme_bw() +
@@ -310,7 +305,6 @@ row_3 <- ggplot(growth_rates, aes(x=tree, y=value, fill = tree)) +
   scale_y_continuous(breaks=c(0.2,0.6,1.0,1.4),limits=c(0.2, 1.6)) + 
   xlab("")+
   ylab(expression("Growth rate [" * d^-1 * "]")) + theme(legend.title=element_blank(),axis.text.x = element_text(color = "black", angle= 90, vjust = 0.7,hjust=1) )
-
 #ggsave(paste0(pic_dir,"row_3_CCD.pdf"),row_3 + theme(legend.position = "none") , width = 14.28, height = 7.14, units = "cm", dpi = 300)
 
 
