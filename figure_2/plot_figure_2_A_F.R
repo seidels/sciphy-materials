@@ -33,12 +33,12 @@ library(stringr)
 library(tidyverse)
 library(phytools)
 
-#read-in all results
-B1_index_inference <- read.csv(file = "../inference_logs/summary/B1_index_inference.csv")
-insert_rate_inference <- read.csv(file = "../inference_logs/summary/insert_rate_inference.csv")
-clock_rate_inference <- read.csv(file = "../inference_logs/summary/clock_rate_inference.csv")
-tree_height_inference <- read.csv(file = "../inference_logs/summary/tree_height_inference.csv")
-tree_length_inference <- read.csv(file = "../inference_logs/summary/tree_length_inference.csv")
+#read-in validation results for each SciPhy parameter and tree statistic
+B1_index_inference <- read.csv(file = "inference_logs/summary/B1_index_inference.csv")
+insert_rate_inference <- read.csv(file = "inference_logs/summary/insert_rate_inference.csv")
+clock_rate_inference <- read.csv(file = "inference_logs/summary/clock_rate_inference.csv")
+tree_height_inference <- read.csv(file = "inference_logs/summary/tree_height_inference.csv")
+tree_length_inference <- read.csv(file = "inference_logs/summary/tree_length_inference.csv")
 
 # all chains converged, assessed with get_summary_tables_for_all_parameters.R
 nr_converged_chains <- 100
@@ -87,8 +87,7 @@ insert_probs_plot = ggplot(insert_rate_inference, aes(x=true_value, y=median,col
   ggtitle("Insertion probabilities")+ 
   scale_color_manual(values = cols) +
   theme(plot.title = element_text(hjust=0.5),text=element_text(size = text_size),legend.position = "None")
-insert_probs_plot
-
+#insert_probs_plot
 
 clock_rate_plot = ggplot(clock_rate_inference, aes(x=true_value, y=median,color=as.logical(recovered))) +
   geom_point(size=0.3)+geom_errorbar(aes(ymin = hpd_lower, ymax=hpd_upper,color=as.logical(recovered)), alpha=0.4)+
@@ -100,8 +99,7 @@ clock_rate_plot = ggplot(clock_rate_inference, aes(x=true_value, y=median,color=
   ggtitle("Editing rate")+
   scale_color_manual(values = cols) +
   theme(plot.title = element_text(hjust=0.5),text=element_text(size = text_size),legend.position = "None")
-clock_rate_plot
-
+#clock_rate_plot
 
 tree_height_plot = ggplot(tree_height_inference, aes(x=true_value, y=median,color=as.logical(recovered))) +
   geom_point(size=0.3)+geom_errorbar(aes(ymin = hpd_lower, ymax=hpd_upper,color=as.logical(recovered)), alpha=0.4)+
@@ -113,8 +111,7 @@ tree_height_plot = ggplot(tree_height_inference, aes(x=true_value, y=median,colo
   ggtitle("Tree height")+ 
   scale_color_manual(values = cols) +
   theme(plot.title = element_text(hjust=0.5),text=element_text(size = text_size),legend.position = "None")
-tree_height_plot
-
+#tree_height_plot
 
 tree_length_plot = ggplot(tree_length_inference, aes(x=true_value, y=median,color=as.logical(recovered))) +
   geom_point(size=0.3)+geom_errorbar(aes(ymin = hpd_lower, ymax=hpd_upper,color=as.logical(recovered)), alpha=0.4)+
@@ -127,9 +124,7 @@ tree_length_plot = ggplot(tree_length_inference, aes(x=true_value, y=median,colo
   scale_color_manual(values = cols) +
   theme(plot.title = element_text(hjust=0.5),text=element_text(size = text_size),legend.position = "None")
 
-tree_length_plot
-
-
+#tree_length_plot
 B1_index_plot = ggplot(B1_index_inference, aes(x=true_value, y=median, color=as.logical(recovered))) +
   geom_point(size=0.3)+geom_errorbar(aes(ymin = hpd_lower, ymax=hpd_upper,color=as.logical(recovered)), alpha=0.4)+
   geom_abline(slope = 1, col="darkgreen")+
@@ -140,17 +135,12 @@ B1_index_plot = ggplot(B1_index_inference, aes(x=true_value, y=median, color=as.
   ggtitle("Tree balance")+ 
   scale_color_manual(values = cols) +
   theme(plot.title = element_text(hjust=0.5),text=element_text(size = text_size),legend.position = "None")
-B1_index_plot
-
-
-#load the upgma building function from Choi et al.,2022
-source("~/typewriter_analysis/src/cell_culture/upgma/scripts.R")
-source("~/typewriter_analysis/src/useful_scripts_across_categories.R")
+#B1_index_plot
 
 #get num tips per simulated tree
 num_tips <- c()
 for(i in 1:100) {
-  file_name <- paste0("../simulated_data/simulate_alignment_and_tree.",i,".newick")
+  file_name <- paste0("simulated_data/simulate_alignment_and_tree.",i,".newick")
   tree <- readLines(file_name)
   tree <- str_remove_all(tree,"\\[.........\\]")
   tree <- str_remove_all(tree,"\\[..........\\]")
@@ -160,55 +150,18 @@ for(i in 1:100) {
   num_tips <- c(num_tips,length(p_tree$tip.label))
 }
 
-## function to read-in the simulated alignments
-parseSimulatedTapeAlignment <- function(seed) {
-  full_data <- data.frame()
-  for(tapeNR in 1:10) {
-    file_name <- paste0("../simulated_data/simulate_alignment_and_tree.seed=",seed,".",tapeNR,".alignment.sciphy")
-    tree <- readLines(file_name)
-    tree <- tree[13:length(tree)-1]
-    tree <- str_remove_all(tree,"\t\t")
-    tree <- str_remove_all(tree,";")
-    
-    taxa <- c()
-    sequences <- c()
-    for(i in 1:length(tree)) {
-      taxa <- c(taxa,unlist(str_split(tree[i]," "))[1]) 
-      sequences <- c(sequences,unlist(str_split(tree[i]," "))[2]) 
-    }
-    
-    sequences <- str_replace_all(sequences,"0","None")
-    #putting back 10s that were removed. 
-    sequences <- str_replace_all(sequences,"1None","10")
-    sequences <- str_split(sequences,",",simplify = T)
-    
-    colnames(sequences) <- c("Site1","Site2","Site3","Site4","Site5")
-    new_sequences <- data.frame(cbind(Cell=taxa,TargetBC=tapeNR,sequences))
-    full_data <- rbind(full_data,new_sequences)
-    
-  }
-  return(full_data)
-}
 
-
-### extract and plot distances to true tree in PI, CCD space: 
-#distance_UPGMA_truth_PI <- c()
+### extract and plot distances from CCD summary tree for each inference run to true tree in PI
 distance_SCIPHY_truth_PI <- c()
 distance_truth_random_PI <- c()
 
 for(SEED in 1:100) {
   
-  #simulated_alignment <- parseSimulatedTapeAlignment(seed=SEED)
-  # nSites is 13 targetBCs * 5 sites = 65 sites; minus the contracted sites,
-  # i.e. 1x 3 contracted (2xTape) and 3x 1 contracted (4xTape)
-  #in our simulation setup, we have 50 sites
-  #UPGMA_tree = build_upgma_tree(edit_table = simulated_alignment, nSites = 50)
-  
   #read-in the SciPhy CCD
-  CCD_tree <- ape::read.nexus(paste0("../inference_logs/CCD/CCD_tree.",SEED,".txt"))
+  CCD_tree <- ape::read.nexus(paste0("inference_logs/CCD/CCD_tree.",SEED,".txt"))
   
-  #parse the true tree
-  file_name_true_tree <- paste0("../simulated_data/simulate_alignment_and_tree.",SEED,".newick")
+  #parse the true simulated tree
+  file_name_true_tree <- paste0("simulated_data/simulate_alignment_and_tree.",SEED,".newick")
   true_tree <- readLines(file_name_true_tree)
   true_tree <- str_remove_all(true_tree,"\\[.........\\]")
   true_tree <- str_remove_all(true_tree,"\\[..........\\]")
@@ -216,19 +169,18 @@ for(SEED in 1:100) {
   true_tree <- paste0(true_tree,";")
   true_tree <- ape::read.tree(text = true_tree)
   
-  #random tree simulated with the same b-d-sampling parameters as for the validation + same number of tips
+  #Simulate and random tree with the same b-d-sampling parameters as for the validation + same number of tips
   random_tree <-  TreeSim::sim.bd.taxa.age(length(true_tree$tip.label),1,0.8,0.2,0.00003,25)
+  
   #adjusting tip labels such that the distance can be calculated
   random_tree[[1]]$tip.label <- str_remove(random_tree[[1]]$tip.label,"t")
   
-  #calculate pairwise PI distances for each 
-  #distance_UPGMA_truth_PI <-  c(distance_UPGMA_truth_PI,TreeDist::PhylogeneticInfoDistance(true_tree, UPGMA_tree,normalize = TRUE))
+  #calculate pairwise PI distances to true tree topology for both random and inferred tree
   distance_SCIPHY_truth_PI <- c(distance_SCIPHY_truth_PI,TreeDist::PhylogeneticInfoDistance(true_tree, CCD_tree,normalize = TRUE))
   distance_truth_random_PI <- c(distance_truth_random_PI,TreeDist::PhylogeneticInfoDistance(random_tree, true_tree,normalize = TRUE))
 }
 
 #make dataframe for boxplot + t-test
-#pi_distances_to_truth <- data.frame(seed=1:100,SciPhy= distance_SCIPHY_truth_PI,UPGMA=distance_UPGMA_truth_PI,Random=distance_truth_random_PI)
 pi_distances_to_truth <- data.frame(seed=1:100,SciPhy_CCD= distance_SCIPHY_truth_PI,Random_BD_tree=distance_truth_random_PI)
 pi_distances_to_truth <- pivot_longer(pi_distances_to_truth, !seed,names_to = "reference", values_to = "distance")
 
@@ -238,8 +190,8 @@ stat.test <- pairwise_t_test(distance ~ reference, data = pi_distances_to_truth,
 )
 stat.test <- stat.test %>% add_xy_position(x = "reference")
 
-cols <- c("SciPhy_CCD" = "#2e7d32cc", "UPGMA" = "red","Random_BD_tree" = "#005bf2cc")
-
+#specify colors
+cols <- c("SciPhy_CCD" = "#2e7d32cc","Random_BD_tree" = "#005bf2cc")
 
 bxp_CCD_PI <- ggboxplot(
   pi_distances_to_truth, x = "reference", y = "distance",
