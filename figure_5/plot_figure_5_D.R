@@ -95,7 +95,7 @@ merle_et_al_bins <- data_frame(t=c(6.0,7.0,10),mean=merle_mean,low=merle_low,hig
 timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
-log_file <- "inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
+log_file <- "inference_output/4-mGASv2-skyline-ou-40K.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]

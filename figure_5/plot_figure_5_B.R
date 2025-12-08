@@ -29,7 +29,7 @@ library(magick)
 
 #load the combined log file
 
-typewriter_file <- "inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
+typewriter_file <- "inference_output4-mGASv2-skyline-ou-40K.log"
 typewriter <- read.table(typewriter_file, header = T)
 
 figure_dir = "plots/"
@@ -72,5 +72,5 @@ p_clock_pos <- ggplot(clock_rate_long, aes(x=name,value,fill=name)) +
 p_clock_pos
 
 #ggsave(paste0(pic_dir,"clock_rate.png"), p_clock_pos, width = 4.76, height = 7.14, units = "cm", dpi = 300)
-ggsave(paste0(figure_dir,"edit_rate.png"), p_clock_pos, width = 7, height = 4.7, units = "cm", dpi = 300)
+ggsave(paste0(figure_dir,"edit_rate.pdf"), p_clock_pos, width = 7, height = 4.7, units = "cm", dpi = 300)
   

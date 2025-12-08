@@ -24,7 +24,7 @@ output_dir = "plots/"
 
 
 ## define input files
-tree_file = "inference_output/4-mGASv2-skyline-ou.10burnin.100000thinned.combined.ccd.tree"
+tree_file = "inference_output/4-mGASv2-skyline-ou-40K.1000Kresampled.CCD0.defaultHeights.tree"
 
 ## load input
 tree = read.beast(file = tree_file)
@@ -47,3 +47,5 @@ p = ggtree(tree, root.position = origin_length, size=0.05,options(ignore.negativ
 p
 
 ggsave(paste0(output_dir,"fig_5_e.png"), p, width=12.8, height = 11, units = "cm", dpi = 300)
+ggsave(paste0(output_dir,"fig_5_e.pdf"), p, width=12.8, height = 11, units = "cm", dpi = 300)
+
