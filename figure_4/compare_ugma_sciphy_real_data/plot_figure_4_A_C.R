@@ -41,7 +41,7 @@ plot_tree_distances_topology_metric <- function(tree_df,tree_likelihood,metric_n
   
   plot <- ggplot(tree_df[1: (nrow(tree_df) - 2),], aes_string(x = dim_1, y = dim_2)) +
     geom_point(aes(col = tree_likelihood), size = 0.5, alpha = 0.5) + 
-    scale_color_gradient(low = "white", high = "#05290B",name = "Likelihood") + 
+    scale_color_gradient(low = "white", high = "#05290B",name = "Log-likelihood") + 
     xlab(dim_1) + ylab(dim_2) + theme_bw(base_family = "")+ 
     theme(legend.position = c(0.6,1.43), text = element_text(size = 10)) +
     geom_point(data=tree_df[(nrow(tree_df) - 1):(nrow(tree_df) - 1),], aes_string(x=dim_1,y=dim_2),colour="red",size = 2)+ 
@@ -71,9 +71,6 @@ get_median_and_hpd = function(growth){
 ## Plot the 2D plot in the Clustering Information metric stpace
 ## ----------------------------------------
 ##
-##sourcing helper functions
-source("plot_trees_in_2d_with_likelihoods.R")
-
 
 #extract likelihood values corresponding to the subsample of trees:
 
@@ -115,7 +112,7 @@ txc <- vapply(seq_len(ncol(CI_treeDist)), function(k) {
 plot(txc, xlab = "Dimension")
 
 #plot the mapping quality
-png(paste0(pic_dir,"mapping_quality_RF_PI_CCD.png"))
+png(paste0(pic_dir,"mapping_quality_PI_CCD.png"),width = 14.28, height = 14.28, units = "cm", res = 300)
 plot(txc, xlab = "Dimension")
 abline(h = 0.9, lty = 2)
 dev.off()
@@ -152,13 +149,13 @@ trees_sciphy <- ape::read.nexus(file = "inference_output/clockPerTarget_sampling
 log_sciphy <- read.table("../figure_3/inference_output/combined_clockPerTarget_sampling_DataSet1.log", header = T)
 
 ##read in the CCD corresponding to the SciPhy analysis
-CCD_sciphy <- ape::read.nexus(file = "inference_output/CCD_median_heights_clockPerTarget_sampling_DataSet1_3000000.tree")
+CCD_sciphy <- ape::read.nexus(file = "inference_output/CCD_clockPerTarget_sampling_DataSet1_3000000.tree")
 
 ##read in UPGMA tree
 upgma <- ape::read.tree(file = "inference_output/UPGMAtree_1000.txt")
 
 ##read in the CCD of the UPGMA tree with branch lengths scaled with SciPhy
-CCD_upgma_sciphy <- ape::read.nexus(file = "inference_output/CCD_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling_3000000.tree")
+CCD_upgma_sciphy <- ape::read.nexus(file = "inference_output/fixed_tree/CCD_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling_3000000.tree")
 
 #get the median posterior tree height
 median_sciphy_posterior_height <- median(log_sciphy[,"treeHeight.t.alignment"])
@@ -230,7 +227,7 @@ row_2 <- cowplot::plot_grid(ltt_all + theme(legend.position = "none"),legend_1,n
 # ---------------------------------------------------------
 
 ## Add the UPGMA based es timates
-typewriter_file <- "inference_output/combined_fixed_UPGMA_rho_sampling.log"
+typewriter_file <- "inference_output/fixed_tree/combined_fixed_UPGMA_rho_sampling.log"
 typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.10)
 
 #convergence metrics
@@ -245,7 +242,7 @@ bd_rates = melt(bd_rates, id.vars = "tree")
 growth_rates = bd_rates
 
 ## Add UPGMA scaled based estimates
-typewriter_file <- "inference_output/combined_1000_UPGMA_infer_rho_sampling_median_height.log"
+typewriter_file <- "inference_output/fixed_tree/combined_1000_UPGMA_infer_rho_sampling_median_height.log"
 typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.1)
 
 #convergence metrics
@@ -273,7 +270,7 @@ bd_rates = melt(bd_rates, id.vars = "tree")
 growth_rates = rbind(growth_rates, bd_rates)
 
 ## Add the UPGMA with scaled branches with SciPhy
-typewriter_file <- "inference_output/combined_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling.log"
+typewriter_file <- "inference_output/fixed_tree/combined_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling.log"
 typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.10)
 
 #convergence metrics
@@ -318,6 +315,6 @@ col_2 <- cowplot::plot_grid( row_3 + theme_classic() + theme(legend.position = "
 
 full_figure <- cowplot::plot_grid(col_1,col_2, ncol=2, labels = "AUTO", label_y=c(1,1.1,1.1),rel_widths = c(0.4,1.0)) 
 
-ggsave(paste0(pic_dir,"figure_4_A_C.pdf"),full_figure, width = 14.28, height = 14.28, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_4_A_C_log_lik.pdf"),full_figure, width = 14.28, height = 14.28, units = "cm", dpi = 300)
 
 
