@@ -6,7 +6,6 @@ To generate the plots in panels B, D-E, the analysis on 2 time change points det
 
 ## Generate alignments
 
-**Please note that the data will only be made publicly available upon publication.** In the meantime, we are sharing empty placeholder files, such as `processed_data/mGASv2_Lane2_CellByTape_filtered_for_8barcodes.RDS`, to demonstrate the structure of the data pipeline.
-
+**~~Please note that the data will only be made publicly available upon publication.~~ We have made the data available.** 
 
 To generate the alignment underlying the analyses, run the `run.sh` executing the data preprocessing pipeline to be found in  `./processing_scripts/`.
