@@ -95,7 +95,7 @@ merle_et_al_bins <- data_frame(t=c(6.0,7.0,10),mean=merle_mean,low=merle_low,hig
 timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
-log_file <- "inference_output/4-mGASv2-skyline-ou-40K.log"
+log_file <- "inference_output/4-mGASv2-skyline-ou-40K-3-seeds.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]
@@ -119,10 +119,9 @@ p_growth_OU_2 <- ggplot(growth_combined) +
   ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,7.5,10,11)) +
   xlab("Time [d]") 
 
-p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
 #p_growth_OU <- p_growth_OU + theme(legend.position = "none")+  guides(color = guide_legend(ncol = 1)) ,ncol=2,nrow=1, rel_widths = c(1.0,1.0),axis = "l")
-ggsave(paste0(pic_dir,"figure_5_D.pdf"),p_growth_OU_2, width = 14.28, height = 5, units = "cm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_5_D_final.pdf"),p_growth_OU_2, width = 14.28, height = 5, units = "cm", dpi = 300)
 
 
 ###########################
@@ -164,7 +163,7 @@ timeline_changes <- c(0.0,4, 7,8, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "inference_output/3-mGASv2-skyline-ou.10burnin.combined.log"
+log_file <- "inference_output/3-mGASv2-skyline-ou-40K-3-seeds.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:4)] - typewriter_mcmc[,paste0("deathRate.",1:4)]
@@ -178,7 +177,7 @@ timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
+log_file <- "inference_output/4-mGASv2-skyline-ou-40K-3-seeds.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]
