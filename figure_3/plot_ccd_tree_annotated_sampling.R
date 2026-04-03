@@ -65,17 +65,70 @@ if((length(caper::clade.members(node_number,tree@phylo)) < 110) && (length(caper
 }
 }
 
+# 1. Generate the base plot
+p <- ggtree(tree, root.position = stem_length, size=0.05) +
+  geom_hilight(node=1309, fill="steelblue", alpha=0.5) +
+  geom_rootedge(rootedge = stem_length, size=0.05) + 
+  theme_tree2()
 
+# 2. Extract plot data to find the visual range
+d <- p$data
+# Get all offspring of node 1309
+clade_nodes <- tidytree::offspring(tree, 1309)
 
-p = ggtree(tree, root.position = stem_length, size=0.05)  +
-  geom_hilight(node=1309, fill="steelblue", alpha=0.5)+
-  geom_rootedge(rootedge = stem_length, size=0.05) + theme_tree2() + 
-  theme(axis.text.x  = element_text(size = 6),
-        axis.title.x  = element_text(size = text_size))+
+# 3. Find the tips with the extreme Y-coordinates within that clade
+clade_tips <- d[d$node %in% clade_nodes & d$isTip, ]
+taxa1_node <- clade_tips$node[which.min(clade_tips$y)]
+taxa2_node <- clade_tips$node[which.max(clade_tips$y)]
+
+# 4. Add the bracket using these geometrically-correct nodes
+p + geom_strip(
+  taxa1 = taxa1_node, 
+  taxa2 = taxa2_node, 
+  color = "steelblue", 
+  barsize = 1,
+  offset = 0.5,     # Adjust to move the bracket away from the tips
+  extend = 0.2      # Adjust to make the bracket slightly taller/shorter
+) +
+  theme(
+    axis.text.x  = element_text(size = 6),
+    axis.title.x  = element_text(size = text_size),
+    plot.margin = margin(5, 40, 5, 5) # Added right margin for the bracket
+  ) +
   xlab("Time [d]")
-p
 
-ggsave(paste0(output_dir,"CCD_tree_marked_clade_sampling.pdf"),p, width = 5.14, height = 5.14, units = "cm", dpi = 300)
+
+# 1. Generate the base plot first
+p_circular <- ggtree(tree, layout = "circular", root.position = stem_length, size = 0.05) +
+  geom_hilight(node = 1309, fill = "steelblue", alpha = 0.5) +
+  geom_rootedge(rootedge = stem_length, size = 0.05) + 
+  theme_tree() + theme(
+    plot.margin = margin(0, 0, 0, 0, "pt"),
+    panel.spacing = unit(0, "pt")
+  )
+  
+
+# 1. Get the list of all descendant node IDs (this returns a vector)
+offspring_nodes <- tidytree::offspring(tree, 1309)
+
+# 2. Filter the plot data 'd' to find only the TIPS within that list
+# We use %in% to match the IDs
+clade_tips <- d[d$node %in% offspring_nodes & d$isTip, ]
+
+# 3. Identify the geometric start and end based on the plot angles
+# It's safer to use 'node' indices for geom_strip to avoid label matching errors
+taxa1_node <- clade_tips$node[which.min(clade_tips$angle)]
+taxa2_node <- clade_tips$node[which.max(clade_tips$angle)]
+
+# 4. Add the strip
+p_circular <- p_circular + geom_strip(
+  taxa1 = taxa1_node, 
+  taxa2 = taxa2_node, 
+  color = "steelblue",
+  barsize = 0.8,
+  offset = 0.1,
+  extend = 0.2
+) 
 
 
 # zoom in on clade and show alignment and time uncertainty
