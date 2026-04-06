@@ -29,7 +29,7 @@ library(treeio)
 library(cowplot)
 
 # Load data
-typewriter_file <- "inference_output/3-combined.log"
+typewriter_file <- "inference_output/combined_clockPerTarget_sampling_DataSet1.log"
 typewriter <- read.table(typewriter_file, header = T)
 
 # -----------------------------
@@ -57,10 +57,9 @@ colors <- c(hue_pal()(19), "#E1E1F7")
 names(colors) <- c(sort(trinucleotides_names), "Prior")
 
 p_inserts <- ggplot(datafra_long, aes(x = name, y = value, fill = name)) +
-  geom_violin(scale = "width", draw_quantiles = c(0.5), linewidth = 0.2, trim = TRUE, bounds = c(0, Inf)) +
-  scale_fill_manual(values = colors) +
-  scale_y_continuous(breaks = c(0, 0.05, 0.1, 0.15, 0.2), expand = expansion(mult = c(0, 0.05))) +
-  coord_cartesian(ylim = c(0, 0.2), clip = "off") +
+  geom_violin(scale = "width", draw_quantiles = c(0.5), linewidth = 0.2,adjust = 2.2) +
+  scale_fill_manual(values = colors) +coord_cartesian(ylim = c(0, 0.2)) +
+  scale_y_continuous(breaks = c(0, 0.05, 0.1, 0.15, 0.2), expand = expansion(mult = c(0, 0.05)))  +
   annotation_custom(grid::textGrob(label = "Estimates per insert", x = grid::unit((1 + estimate_span)/2, "native"),
                                    y = grid::unit(-55, "points"), gp = grid::gpar(fontsize = text_size_max))) +
   labs(y = "Insertion probability") +
@@ -271,7 +270,7 @@ growth_and_sampling <- plot_grid(
 all_plots <- plot_grid(
   clock_and_insert_probs, 
   growth_and_sampling, 
-  final_tree, 
+  blank_p, 
   nrow = 3, 
   rel_heights = c(3, 1.5, 4), 
   labels = c("", "", "G"),
@@ -279,5 +278,5 @@ all_plots <- plot_grid(
 )
 
 # Save with requested dimensions (185 mm x 180 mm)
-ggsave(paste0(figure_dir, "all_plots_final_GUIDELINES_ADJUSTED.pdf"), all_plots, width = 180, height = 185, units = "mm",)
+ggsave(paste0(figure_dir, "all_plots_final_GUIDELINES_ADJUSTED_3b.pdf"), all_plots, width = 180, height = 185, units = "mm",)
 
