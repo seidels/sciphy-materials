@@ -81,29 +81,34 @@ tree <- read.beast("inference_output/4-mGASv2-skyline-ou-40K.1000Kresampled-3-se
 origin_length <- 11 - round(max(tree@data$height, na.rm=T), 3)
 
 # --- 3. Individual Plots ---
-# 1. Define the custom color palette
-# Get the first 8 colors from Dark2 for the tapes
 dark2_cols <- scales::brewer_pal(palette = "Dark2")(8)
-# Name them according to your 'numeric_names'
 names(dark2_cols) <- as.character(sort(numeric_names))
-
-# Combine with your specific Prior color
 custom_palette <- c(dark2_cols, "Prior" = "#E1E1F7")
 
 p_clock <- ggplot(clock_rate_long, aes(x=name, y=value, fill=name)) +
-  geom_violin(draw_quantiles = 0.5, linewidth = line_thickness) +
-  scale_fill_manual(values = custom_palette) + theme_classic(base_size = text_size_min) +
+  geom_violin(draw_quantiles = 0.5, linewidth = line_thickness, adjust = 1.8, trim = FALSE) +
+  scale_fill_manual(values = custom_palette) + 
+  theme_classic(base_size = text_size_min) +
   labs(y = expression("Editing rate [" * d^-1 * "]"), x = "Estimates per tape") +
-  theme(legend.position = "none", axis.title = element_text(size = text_size_max),
-        axis.line = element_line(linewidth = line_thickness), axis.ticks = element_line(linewidth = line_thickness))
+  theme(legend.position = "none", 
+        axis.title = element_text(size = text_size_max),
+        axis.text = element_text(size = text_size_min),
+        axis.line = element_line(linewidth = line_thickness), 
+        axis.ticks = element_line(linewidth = line_thickness))
 
 p_editing <- ggplot(edits_melted, aes(x=SiteNum, col=factor(TargetBC_new), group=TargetBC_new)) +
   geom_point(stat = "count", size = 0.5) + geom_line(stat = "count", linewidth = 0.3) +
-  scale_color_brewer(palette = "Dark2") + theme_classic(base_size = text_size_min) +
-  labs(y = "Insert count", x = "Sites") +
-  labs(color = "Tape") +
-  theme(legend.key.spacing.y = unit(0.02, "cm"),legend.title = element_text("Tape"),legend.position = "right", axis.title = element_text(size = text_size_max),
-        axis.line = element_line(linewidth = line_thickness), axis.ticks = element_line(linewidth = line_thickness))
+  scale_color_brewer(palette = "Dark2") + 
+  theme_classic(base_size = text_size_min) +
+  labs(y = "Insert count", x = "Sites", color = "Tape") +
+  theme(legend.key.spacing.y = unit(0.02, "cm"),
+        legend.title = element_text(size = text_size_min),
+        legend.text = element_text(size = text_size_min),
+        legend.position = "right", 
+        axis.title = element_text(size = text_size_max),
+        axis.text = element_text(size = text_size_min),
+        axis.line = element_line(linewidth = line_thickness), 
+        axis.ticks = element_line(linewidth = line_thickness))
 
 p_growth <- ggplot(growth_combined) +  
   geom_step(aes(x=t, y=median, col=tree), linewidth = 0.5) + 
@@ -112,16 +117,30 @@ p_growth <- ggplot(growth_combined) +
   geom_stepribbon(data=merle_et_al_bins, aes(x=t, ymin=low, ymax=high, fill=tree), alpha = 0.1) +    
   scale_color_manual(values = c("SciPhy"="red", "Merle et al., 2024"="black")) +
   scale_fill_manual(values = c("SciPhy"="red", "Merle et al., 2024"="black")) +
-  theme_classic(base_size = text_size_min) + labs(y = expression("Growth rate [" * d^-1 * "]"), x = "Time [d]") +
-  theme(legend.position = c(0.8, 0.8), legend.title = element_blank(), axis.title = element_text(size = text_size_max),
-        axis.line = element_line(linewidth = line_thickness), axis.ticks = element_line(linewidth = line_thickness)) + scale_x_continuous(breaks=c(0,4,6,7,7.5,10,11)) 
+  theme_classic(base_size = text_size_min) + 
+  labs(y = expression("Growth rate [" * d^-1 * "]"), x = "Time [d]") +
+  theme(legend.position = c(0.8, 0.8), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = text_size_min),
+        axis.title = element_text(size = text_size_max),
+        axis.text = element_text(size = text_size_min),
+        axis.line = element_line(linewidth = line_thickness), 
+        axis.ticks = element_line(linewidth = line_thickness)) + 
+  scale_x_continuous(breaks=c(0,4,6,7,7.5,10,11)) 
 
 p_tree <- ggtree(tree, root.position = origin_length, size=0.15, color="darkgrey") + 
   theme_tree2() + geom_rootedge(rootedge = origin_length, size=0.15) + 
   geom_nodepoint(aes(size=posterior)) + scale_size(range = c(0.1, 2)) +
   vexpand(.05, 1) +  vexpand(.05, -1) +
-  scale_x_continuous(breaks = c(0, 4, 6, 7, 7.5, 11)) + labs(x = "Time [d]",size="Posterior support") +
-  theme(legend.position = "top",text = element_text(size = text_size_min), axis.title.x = element_text(size = text_size_max),axis.line.x = element_line(linewidth = line_thickness),
+  scale_x_continuous(breaks = c(0, 4, 6, 7, 7.5, 11)) + 
+  labs(x = "Time [d]", size="Posterior support") +
+  theme(legend.position = "top",
+        legend.text = element_text(size = text_size_min),
+        legend.title = element_text(size = text_size_min),
+        text = element_text(size = text_size_min), 
+        axis.text.x = element_text(size = text_size_min),
+        axis.title.x = element_text(size = text_size_max),
+        axis.line.x = element_line(linewidth = line_thickness),
         axis.ticks.x = element_line(linewidth = line_thickness))
 
 # --- 4. Assembly ---
@@ -129,4 +148,4 @@ col_bc <- plot_grid(p_clock, p_editing, ncol = 2, labels = c("B", "C"), label_si
 final_plot <- plot_grid(ggdraw(), col_bc, p_growth, p_tree, ncol = 1, 
                         labels = c("A", "", "D", "E"), label_size = text_size_max, rel_heights = c(1, 1, 1, 2.0))
 
-ggsave("plots/figure_mGASv2_GUIDELINE_ADJUSTED.pdf", final_plot, width = 180, height = 185, units = "mm", dpi = 300,device = cairo_pdf)
+ggsave("plots/figure_mGASv2_GUIDELINE_ADJUSTED_correct_font_size.pdf", final_plot, width = 180, height = 185, units = "mm", dpi = 300, device = cairo_pdf)
