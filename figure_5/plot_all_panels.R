@@ -1,8 +1,7 @@
-## Script name: plot_mGASv2_summary_full.R
+## Script name: plot_all_panels
 ## Purpose: Final summary figure for mGASv2 analysis
 ## Dimensions: 180mm x 185mm | Font: 5-7pt
 
-# --- 1. Global Settings & Libraries ---
 text_size_max = 7
 text_size_min = 5
 line_thickness = 0.2
@@ -20,10 +19,9 @@ library(ggtree)
 library(treeio)
 library(pammtools)
 
-# --- 2. Data Loading & Processing ---
 
 # A. Clock Rates
-typewriter_file <- "inference_output/4-mGASv2-skyline-ou-40K-3-seeds.log"
+typewriter_file <- "inference_output/4-mGASv2-skyline-ou.log"
 typewriter <- read.table(typewriter_file, header = T)
 
 clock_rate <- typewriter[, startsWith(colnames(typewriter), "clockRate_")]
@@ -40,7 +38,7 @@ clock_rate <- bind_cols(clock_rate, Prior = rlnorm(nrow(clock_rate), meanlog = -
 clock_rate_long <- pivot_longer(clock_rate, everything())
 
 # B. Site Editing
-filtered_dat <- readRDS("processed_data/mGASv2_Lane2_CellByTape_filtered_for_8barcodes_OG.RDS")
+filtered_dat <- readRDS("processed_data/mGASv2_Lane2_CellByTape_filtered_for_8barcodes.RDS")
 edits_melted <- melt(filtered_dat, id.vars = c("TargetBC", "Cell"), variable.name = "Sites") %>%
   filter(value != "None") %>%
   mutate(TargetBC = factor(TargetBC, levels = sort(unique(TargetBC))),
@@ -49,6 +47,7 @@ edits_melted <- melt(filtered_dat, id.vars = c("TargetBC", "Cell"), variable.nam
 
 # C. Growth Rates (SciPhy + Merle et al.)
 typewriter_mcmc <- as.mcmc(typewriter)
+
 growth <- typewriter_mcmc[,paste0("birthRate.", 1:3)] - typewriter_mcmc[,paste0("deathRate.", 1:3)]
 HPD <- HPDinterval(growth)
 growth_hpd <- data.frame(median = as.numeric(apply(growth, 2, median)),
@@ -148,4 +147,4 @@ col_bc <- plot_grid(p_clock, p_editing, ncol = 2, labels = c("B", "C"), label_si
 final_plot <- plot_grid(ggdraw(), col_bc, p_growth, p_tree, ncol = 1, 
                         labels = c("A", "", "D", "E"), label_size = text_size_max, rel_heights = c(1, 1, 1, 2.0))
 
-ggsave("plots/figure_mGASv2_GUIDELINE_ADJUSTED_correct_font_size.pdf", final_plot, width = 180, height = 185, units = "mm", dpi = 300, device = cairo_pdf)
+ggsave("plots/figure_5.pdf", final_plot, width = 180, height = 185, units = "mm", dpi = 300, device = cairo_pdf)
