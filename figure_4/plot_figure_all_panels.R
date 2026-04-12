@@ -1,7 +1,7 @@
-## Script name: plot_figure_4_A_C
+## Script name: plot_figure_all_panels
 ##
-## Purpose of script: Plot a figure that summarises how SciPhy compares with UPGMA 
-## for the HEK293T analysis.
+## Purpose of script: Plot a figure that summarises how SciPhy compares with other methods (empirical and simulated data_)
+##
 ##
 
 ## set output directory for the plot
@@ -75,7 +75,7 @@ get_median_and_hpd = function(growth){
 }
 
 # ----------------------------------------
-## Plot the 2D plot in the Clustering Information metric space
+## Plot the 2D plot in the Phylogenetic Information metric space
 # ----------------------------------------
 
 sciphy_trees <- ape::read.nexus(file = "~/typewriter_analysis/paper_figures/figure_4/inference_output/clockPerTarget_sampling_DataSet1_3000000.trees")
@@ -94,6 +94,8 @@ txc <- vapply(seq_len(ncol(CI_treeDist)), function(k) {
   newDist <- dist(CI_treeDist[, seq_len(k)])
   MappingQuality(dist, newDist, 10)["TxC"]
 }, 0)
+
+
 
 png(paste0(pic_dir,"mapping_quality_PI_CCD.png"),width = 14.28, height = 14.28, units = "cm", res = 300)
 plot(txc, xlab = "Dimension")
@@ -174,11 +176,75 @@ ltt_all <- ggplot(all_ltt,aes(x=time,y=N,group=number,colour=type,alpha = type))
 # plot growth rates
 # ---------------------------------------------------------
 
-# (Omitted repetitive data loading logic for brevity, assuming growth_rates is built)
-# ... [Growth rate data frames combined into growth_rates] ...
 
-growth_rates$tree = factor(growth_rates$tree, levels=c("Prior","SciPhy", "UPGMA", "UPGMA root","UPGMA +"))
+## Add the UPGMA based es timates
+typewriter_file <- "inference_output/fixed_tree/combined_fixed_UPGMA_rho_sampling.log"
+typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.10)
+
+#convergence metrics
+rhat_value <- rhat(typewriter$posterior)
+rhat_value
+#1.002006
+
+bd_rates <- data.frame(growthRate = typewriter[,"birthRate"] - typewriter[,"deathRate"])
+HDInterval::hdi(bd_rates)
+bd_rates$tree = "UPGMA ordered"
+bd_rates = melt(bd_rates, id.vars = "tree")
+growth_rates = bd_rates
+
+## Add UPGMA scaled based estimates
+typewriter_file <- "inference_output/fixed_tree/combined_1000_UPGMA_infer_rho_sampling_median_height.log"
+typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.1)
+
+#convergence metrics
+rhat_value <- rhat(typewriter$posterior)
+rhat_value
+#0.9983593
+
+bd_rates <- data.frame(growthRate = typewriter[,"birthRate"] - typewriter[,"deathRate"])
+bd_rates$tree = "UPGMA ordered + root scaling"
+bd_rates = melt(bd_rates, id.vars = "tree")
+growth_rates = rbind(growth_rates, bd_rates)
+
+## Add the main SciPhy analysis 
+typewriter_file <- "../figure_3/inference_output/combined_clockPerTarget_sampling_DataSet1.log"
+typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.10)
+
+#convergence metrics
+rhat_value <- rhat(typewriter$posterior)
+rhat_value
+#1.077371
+
+bd_rates <- data.frame(growthRate = typewriter[,"birthRate"] - typewriter[,"deathRate"])
+bd_rates$tree = "SciPhy"
+bd_rates = melt(bd_rates, id.vars = "tree")
+growth_rates = rbind(growth_rates, bd_rates)
+
+## Add the UPGMA with scaled branches with SciPhy
+typewriter_file <- "inference_output/fixed_tree/combined_1000_UPGMA_medianPosteriorHeight_estimateBranchLengths_infer_rho_sampling.log"
+typewriter <- read.table(typewriter_file, header = T) %>% slice_tail(prop = 0.10)
+
+#convergence metrics
+rhat_value <- rhat(typewriter$posterior)
+rhat_value
+#1.004213
+
+bd_rates <- data.frame(growthRate = typewriter[,"birthRate"] - typewriter[,"deathRate"])
+bd_rates$tree = "UPGMA ordered + SciPhy scaling"
+bd_rates = melt(bd_rates, id.vars = "tree")
+growth_rates = rbind(growth_rates, bd_rates)
+
+
+## Add the Prior
+prior = data.frame(growthRate=rlnorm(n = 1000, meanlog = 0.1, sdlog = 1) -  rlnorm(1000, meanlog = -0.4, sdlog = 1))
+prior$tree = "Prior"
+prior =melt(prior, id.vars = "tree")
+growth_rates = rbind(growth_rates, prior)
+
+
+growth_rates$tree = factor(growth_rates$tree, levels=c("Prior","SciPhy", "UPGMA ordered", "UPGMA ordered + root scaling","UPGMA ordered + SciPhy scaling"))
 cols_growth <- c("Prior" = "white","SciPhy" = "#56996E", "UPGMA" = "red","UPGMA root" = "#E07E5E","UPGMA +" = "yellow")
+
 
 row_3 <- ggplot(growth_rates, aes(x=tree, y=value, fill = tree)) +
   theme_classic() +
@@ -304,7 +370,6 @@ p_wrf
 # Combine and save
 # ---------------------------------------------------------
 
-
 col_2 <- cowplot::plot_grid(
   row_3, 
   ltt_all + theme(legend.position = c(.7,.27), legend.key.size = unit(0.2, "cm")), 
@@ -315,4 +380,4 @@ empirical_comparison_figure <- cowplot::plot_grid(col_1, col_2, ncol=2, labels =
 
 full_figure <- cowplot::plot_grid(empirical_comparison_figure,p_pi,p_wrf,nrow=3,labels =c("","D","E"),rel_heights = c(1,0.4,0.4),label_size = 7)
 
-ggsave(paste0(pic_dir,"figure_4_GUIDELINES_ADAPTED.pdf"), full_figure, width = 180, height = 185, units = "mm", dpi = 300)
+ggsave(paste0(pic_dir,"figure_4.pdf"), full_figure, width = 180, height = 185, units = "mm", dpi = 300)
