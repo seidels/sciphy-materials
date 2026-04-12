@@ -1,6 +1,6 @@
 ## ---------------------------
 ##
-## Script name: plot_inference_results_annotated
+## Script name: create_supp_fig_20
 ##
 ## Purpose of script: Plot estimates from SciPhy on HEK293 cell culture data, clock per target, with color annotations matching the tree.
 ##
@@ -12,83 +12,89 @@
 ## Email: antoine.zwaans@bsse.ethz.ch
 ##
 
-# set figure settings
-text_size=10
-label_size = 12
-## load up the packages we will need:
 
 library(tidyverse)
 library(RColorBrewer)
 library(viridis)
+library(dirmult)
+library(grid)
 
-#load the combined log file
+text_size_max <- 10
+text_size_min <- 8
+axis_line_weight <- 0.4
+figure_dir <- "plots/"
 
-typewriter_file <- "../figure_5/inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
-typewriter <- read.table(typewriter_file, header = T)
+typewriter_file <- "../figure_5/inference_output/4-mGASv2-skyline-ou.log"
+typewriter <- read.table(typewriter_file, header = TRUE)
 
-figure_dir = "plots/"
+substrLeft <- function(x, n) substr(x, 1, n)
 
-# -----------------------------
-#  plot insertion probabilities
-# -----------------------------
-substrLeft <- function(x, n){
-  substr(x, 1, n)
-}
+insert_probs <- typewriter[, startsWith(x = colnames(typewriter), prefix = "editProbabilities.")]
+insert_file <- "../figure_5/processed_data/integer_conversion_table.csv"
+insert_map <- read.csv(insert_file)
 
-#extract insertion probabilities from the full dataframe
-insert_probs <- typewriter[,startsWith(x = colnames(typewriter), prefix = "editProbabilities.")]
-insert_file = "../figure_5/processed_data/integer_conversion_table.csv"
-insert_map = read.csv(insert_file)
 trinucleotides_names <- insert_map$edits[which(insert_map$edits != "None")]
-trinucleotides_names = unname(sapply(trinucleotides_names, function(x){substrLeft(x, n = 3)}))
-
-#reorder by median
+trinucleotides_names <- unname(sapply(trinucleotides_names, function(x) substrLeft(x, n = 3)))
 names(insert_probs) <- trinucleotides_names
-insert_probs <- insert_probs[order(-sapply(insert_probs, median))]
 
-# create custom colour palette
+# add prior
+set.seed(42) 
+n_samples <- nrow(insert_probs)
+prior_samples <- rdirichlet(n_samples, rep(1.5, 19))[, 2]
+insert_probs$Prior <- prior_samples
+
+# sort by median by median 
+insert_medians <- sapply(insert_probs %>% select(-Prior), median)
+sorted_insert_names <- names(sort(insert_medians, decreasing = TRUE))
+
+# combine with Prior at the very end
+ordered_names <- c(sorted_insert_names, "Prior")
+
+# setup Colors
 first_9_colors <- brewer.pal(9, "Set1")
-
-# Generate 33 similar shades using viridis
 remaining_33_colors <- viridis(33, option = "C")
-
-# Combine the two sets of colors
 custom_palette <- c(first_9_colors, remaining_33_colors, "white")
 
-insert_color_table = data.frame(inserts = c(colnames(insert_probs), "None"), colors = custom_palette)
-write.csv(insert_color_table, file = "plots/insert_colour_table.csv", quote = F, row.names = F)
-
-# add insert prob posterior summaries
-insert_probs <- bind_cols(insert_probs, Prior=dirmult::rdirichlet(nrow(insert_probs), rep(1.5,19))[,2])
-insert_probs_medians <- sapply(insert_probs, median)
-insert_probs_low <- as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.025)}))
-insert_probs_up <-  as.numeric(sapply(insert_probs,function(x) {quantile(x, 0.975)}))
-datafra <- data_frame(name=c(trinucleotides_names,"Prior"), median=insert_probs_medians,low=insert_probs_low,up=insert_probs_up)
+# map colors to ordered names, ensuring Prior is assigned its specific color
+plot_colors <- setNames(custom_palette[1:length(ordered_names)], ordered_names)
+plot_colors["Prior"] <- "#E1E1F7"
 
 
-datafra$name <- factor(datafra$name, levels = datafra$name)
+datafra_long <- insert_probs %>%
+  pivot_longer(cols = everything(), names_to = "name", values_to = "value") %>%
+  mutate(name = factor(name, levels = ordered_names))
 
-# Print the custom palette to check
-#print(custom_palette)
-
-p_inserts <-  ggplot(datafra) +
-  geom_bar(aes(y=name,x=median, fill=name),stat="identity",colour="black") +
-
+# generate Violin Plot ---
+p_inserts <- ggplot(datafra_long, aes(x = name, y = value, fill = name)) +
+  geom_violin(scale = "width", draw_quantiles = c(0.5), linewidth = 0.2, adjust = 2.2) +
+  scale_fill_manual(values = plot_colors) +
+  
+  coord_cartesian(ylim = c(0, 0.35)) +
+  scale_y_continuous(
+    breaks = seq(0, 0.35, 0.05), 
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  
+  labs(y = "Insertion probability",x="Estimates per trinucleotide insert") +
   theme_classic() +
-  xlab("Posterior insert probability") + ylab("Insert") +
-  theme(legend.position = "none" ) +
-  scale_fill_manual(values= custom_palette) +
-  #theme(plot.title = element_text(hjust=0.5)) +
-  geom_errorbar(aes(y=name, xmin=low, xmax=up), width=.2,
-                position=position_dodge(.9)) +
-  #ggtitle("Insert probabilities") +
-
-  coord_cartesian(xlim=c(0,0.35),expand = FALSE) +
   theme(
-        axis.text = element_text(size = (text_size-2)),
-        axis.title.y = element_text(size = text_size))
+    legend.position = "none",
+    axis.line = element_line(linewidth = 0.1),
+    axis.ticks = element_line(linewidth = axis_line_weight),
+    axis.title.y = element_text(size = text_size_max),
+    axis.text.y = element_text(size = text_size_min),
+    axis.text.x = element_text(angle = 70, hjust = 1, vjust = 1, size = text_size_min),
+    plot.margin = margin(t = 5, r = 5, b = 25, l = 5)
+  ) 
+
 
 p_inserts
 
-
-ggsave(paste0(figure_dir, "insert_probs.png"), p_inserts, width = 6, height = 11, units = "cm", dpi = 300)
+ggsave(
+  filename = "plots/supp_fig_20.pdf", 
+  plot = p_inserts, 
+  width = 15, 
+  height = 14, 
+  units = "cm", 
+  device = cairo_pdf 
+)

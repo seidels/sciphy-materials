@@ -1,5 +1,6 @@
 ## ---------------------------
 ##
+## Script name: create_supp_fig_6
 ##
 ## Purpose of script: Plot inference results for the analysis where only 2 sites were included
 ##
@@ -20,11 +21,11 @@
 
 ## set working directory where the log files are
 
-data_dir = "supp_fig_2_data/"
+data_dir = "supp_fig_6_data/"
 
 ## figure settings
 text_size = 11
-figure_path = "./plots/supp_fig_2.pdf"
+figure_path = "./plots/supp_fig_6.pdf"
 
 ## load up the packages we will need:
 
@@ -38,12 +39,12 @@ library(scales)
 
 #load the combined log file
 
-log_file_2_sites <- "analysis_2sites_DataSet1.combined_b30.log"
+log_file_2_sites <- "supp_fig_2_data/analysis_2sites_DataSet1.combined.burnin20.log"
 dat_2_sites <- read.table(log_file_2_sites, header = T)
 
 log_file_all_sites = "../figure_3/inference_output/1-combined.log"
 dat_all_sites = read.table(log_file_all_sites, header = T)
-
+dat_all_sites = dat_seq_data
 
 # --------------------
 #  plot the clock rates
@@ -86,58 +87,6 @@ clock_rate_2_sites_long <- mutate(clock_rate_2_sites_long, name = fct_relevel(na
 
 clock = rbind(clock_rate_all_sites_long, clock_rate_2_sites_long)
 
-
-p_clock_pos <- ggplot(clock_rate_all_sites_long, aes(x=name,value,fill=name)) +
-  facet_grid(data~.)+
-  theme_bw() +
-  geom_violin(draw_quantiles =  c(0.5)) +
-  xlab("Tape") +
-  ylab(expression("Posterior edit rate [" * d^-1 * "]"))+
-
-  theme(legend.position = "none", axis.title = element_text(size = text_size)) +
-  scale_fill_manual(values=c(rep("#5CA17D",13),"#E1E1F7")) +
-  coord_cartesian(
-    ,expand=FALSE) + theme(axis.title = element_text(size= text_size *2),
-                           axis.text = element_text(size = (text_size -2)*2),
-                           panel.grid.minor = element_blank(),
-                                        panel.border = element_blank(),
-                                        panel.background = element_blank(),
-                           strip.background  = element_rect(colour="black", fill="white"),
-                           panel.grid.major.x = element_blank(), axis.text.x = element_text(angle = 90) )
-
-p_clock_pos
-ggsave("compare_clock_all_sites.png", p_clock_pos, width = 14.28, height = 9, units = "cm", dpi = 300)
-svg("compare_clock_all_sites.svg", width = 14.28, height = 9)
-p_clock_pos
-dev.off()
-
-p_clock_pos <- ggplot(clock_rate_2_sites_long, aes(x=name,value,fill=name)) +
-  facet_grid(data~.)+
-  theme_bw() +
-  geom_violin(draw_quantiles =  c(0.5)) +
-  xlab("Tape") +
-  ylab(expression("Posterior edit rate [" * d^-1 * "]"))+
-
-  theme(legend.position = "none", axis.title = element_text(size = text_size)) +
-  scale_fill_manual(values=c(rep("#5CA17D",13),"#E1E1F7")) +
-  coord_cartesian(
-    ,expand=FALSE) + theme(axis.title = element_text(size= (text_size)*2),
-                           axis.text = element_text(size = (text_size -2)*2),
-                           panel.grid.minor = element_blank(),
-                           panel.border = element_blank(),
-                           panel.background = element_blank(),
-                           strip.background  = element_rect(colour="black", fill="white"),
-                           panel.grid.major.x = element_blank(), axis.text.x = element_text(angle = 90) )
-
-p_clock_pos
-
-svg("compare_clock_2_sites.svg", width = 14.28, height = 9, pointsize = )
-p_clock_pos
-dev.off()
-ggsave("compare_clock_2_sites.png", p_clock_pos, width = 14.28, height = 9, units = "cm", dpi = 300)
-
-
-
 # Test the average of the medians
 
 ## Among all sites
@@ -166,5 +115,109 @@ mean_tapes5x_2sites
 sd(medians_tapes5x_2sites)
 
 
+# --- 1. Define the color map and legend labels ---
+tape_color_map <- c(
+  "TTCACGTA" = "#8B0000", 
+  "ATGGTAAG" = "#5CA17D", 
+  "TTGAGGTG" = "#5CA17D", 
+  "TGGTTTTG" = "#FFFF00", 
+  "TGCGATTT" = "#5CA17D",
+  "TGGACGAC" = "#FFFF00",
+  "TTAGATTG" = "#5CA17D",
+  "GTAAAGAT" = "#5CA17D",
+  "TTTCGTGA" = "#FFFF00",
+  "TAGATTTT" = "#5CA17D",
+  "ATTTGGTT" = "#5CA17D",
+  "GCAGGGTG" = "#5CA17D",
+  "ATTTATAT" = "#5CA17D"
+)
 
+
+
+legend_labels <- c(
+  "TTCACGTA" = "2X Tape", 
+  "TGGTTTTG" = "4X Tape", 
+  "ATGGTAAG" = "5X Tape"
+)
+
+p_clock_pos_2 <- ggplot(clock_rate_2_sites_long, aes(x = name, y = value, fill = name)) +
+  facet_grid(data ~ .) +
+  
+  # Background Gridlines (Major Y only)
+  # Adding this before geoms so lines are behind the violins
+  theme_classic() + 
+  
+  geom_violin(draw_quantiles = c(0.5), linewidth = 0.2, trim = TRUE) +
+  
+  scale_fill_manual(
+    values = tape_color_map,
+    breaks = names(legend_labels),
+    labels = legend_labels
+  ) +
+  
+  
+
+  labs(y = expression("Posterior editing rate [" * d^-1 * "]"),x="Tape") +
+  
+  theme(
+    legend.position = c(0.85,0.85),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    panel.grid.major.y = element_line(color = "#ebebeb", linewidth = 0.2), 
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.line = element_line(linewidth = 0.4),
+    axis.ticks = element_line(linewidth = 0.4),
+    
+    axis.title.y = element_text(size = 10),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(angle = 70, vjust = 1, hjust = 1, size = 8),
+    strip.background = element_rect(colour = "black", fill = "white", linewidth = 0.5),
+    strip.text = element_text(size = 10),
+    plot.margin = margin(t = 5, r = 5, b = 10, l = 5),
+    panel.spacing = unit(1, "lines")
+  )
+
+p_clock_pos_2 
+
+  p_clock_pos_all <- ggplot(clock_rate_all_sites_long, aes(x = name, y = value, fill = name)) +
+  facet_grid(data ~ .) +
+  
+  theme_classic() + 
+  
+  geom_violin(draw_quantiles = c(0.5), linewidth = 0.2, trim = TRUE) +
+  
+  scale_fill_manual(
+    values = tape_color_map,
+    breaks = names(legend_labels),
+    labels = legend_labels
+  ) +
+  
+  
+  
+  labs(y = expression("Posterior editing rate [" * d^-1 * "]"),x="Tape") +
+  
+  theme(
+    legend.position = "none",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    panel.grid.major.y = element_line(color = "#ebebeb", linewidth = 0.2), 
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.line = element_line(linewidth = 0.4),
+    axis.ticks = element_line(linewidth = 0.4),
+    axis.title.y = element_text(size = 10),
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(angle = 70, vjust = 1, hjust = 1, size = 8),
+    strip.background = element_rect(colour = "black", fill = "white", linewidth = 0.5),
+    strip.text = element_text(size = 10),
+    plot.margin = margin(t = 5, r = 5, b = 10, l = 5),
+    panel.spacing = unit(1, "lines")
+  )
+
+p_clock_pos_all 
+
+both <- cowplot::plot_grid(p_clock_pos_2,p_clock_pos_all,nrow=2)
+
+ggsave(figure_path, plot = both,height = 14.28, units = "cm", dpi = 300)
 

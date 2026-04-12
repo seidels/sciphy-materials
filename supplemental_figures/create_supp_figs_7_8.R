@@ -1,6 +1,6 @@
 ## ---------------------------
 ##
-## Script name: create_supp_figs_7_8
+## Script name: create_supp_figs_13_14
 ##
 ## Purpose of script: Implements a simple R simulator of SciPhy data. Here, used to visualize the distributions of edits that can be expected assuming Poisson distributed number of edits along different population scenarios
 ##
@@ -170,18 +170,24 @@ summed_total_present <- total_branch_edits_present1 +
   total_branch_edits_present12 +
   total_branch_edits_present13
 
-#plot the simulated number of edits/cells as a histogram + density plot
-density_plot_present <- ggplot(data=summed_total_present,aes(x=edits)) + 
-                        geom_histogram(aes(y=..density..),alpha = 0.2,fill="orange") + 
-                        xlab("Number of edits per cell") + 
-                        ylab("Density") +
-                        geom_density(alpha=.2, fill="#FF6666") 
+
+density_plot_present <- ggplot(data=summed_total_present, aes(x=edits)) + 
+  geom_histogram(aes(y=..density..), alpha = 0.2, fill="orange") + 
+  geom_density(alpha=.2, fill="#FF6666") +
+  xlab("Number of edits per cell") + 
+  ylab("Density") +
+  theme_classic() + # Explicitly use classic to restore ticks/labels
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(color = "black")
+  )
 
 #plot tree facing the histogram
 plot_grid(ggtree(tree_present),density_plot_present)
 
 #save plot
-ggsave("supp_fig_7.pdf",path="plots/", width=25,height= 18, units = "cm") 
+ggsave("plots/supp_fig_13.pdf", width=25,height= 18, units = "cm") 
 #EXAMPLE: simulate tape alignment along the tree
 simulation_present <- draw_edits_along_edges(tree_present,insert_freq = bulk_insert_count$Freq,insert_types = bulk_insert_count$Var1)
 #extract sequences and edits
@@ -222,14 +228,19 @@ summed_total_past <- total_branch_edits_past1 +
   total_branch_edits_past13
 
 #plot the simulated number of edits/cells as a histogram + density plot
-density_plot_past <- ggplot(data=summed_total_past,aes(x=edits)) + 
-                     geom_histogram(aes(y=..density..),alpha = 0.2,fill="orange") + 
-                     xlab("Number of edits per cell") + 
-                     ylab("Density") +
-                     geom_density(alpha=.2, fill="#FF6666") 
-
+density_plot_past <- ggplot(data=summed_total_past, aes(x=edits)) + 
+  geom_histogram(aes(y=..density..), alpha = 0.2, fill="orange") + 
+  geom_density(alpha=.2, fill="#FF6666") +
+  xlab("Number of edits per cell") + 
+  ylab("Density") +
+  theme_classic() + # Explicitly use classic to restore ticks/labels
+  theme(
+    axis.line = element_line(color = "black"),
+    axis.ticks = element_line(color = "black"),
+    axis.text = element_text(color = "black")
+  )
 #plot tree facing the histogram
 plot_grid(ggtree(tree_past),density_plot_past)
 
 #save plot
-ggsave("supp_fig_8.pdf",path="plots/", width=25,height= 18, units = "cm")
+ggsave("plots/supp_fig_14.pdf", width=25,height= 18, units = "cm") 

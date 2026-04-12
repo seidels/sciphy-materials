@@ -7,6 +7,8 @@ library(scales)
 
 ## --------------------------
 all_stat <- read.csv(file = paste0("supp_fig_runtime_data/combined_runtime_stats.csv"))
+
+
 all_stat$runtime_till_ESS_200 <- all_stat$runtime * 200/(all_stat$ess_likelihood)
 
 
@@ -19,4 +21,4 @@ runtime_figure <- ggplot(all_stat, aes(x=num_tip, y=runtime_till_ESS_200/60)) +
                      breaks = c(0,2,4,6,8,10,12,14,16,18,20)^2) +
   scale_x_continuous(breaks = seq(0,650,by=50)) 
   
-ggsave("supp_fig_runtime.pdf",runtime_figure, width = 7.14, height = 7.14, units = "cm", dpi = 300)
+ggsave("supp_fig_1.pdf",runtime_figure, width = 7.14, height = 7.14, units = "cm", dpi = 300)

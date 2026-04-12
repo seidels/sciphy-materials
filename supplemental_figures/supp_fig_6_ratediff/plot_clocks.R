@@ -21,22 +21,34 @@ make_clockrate_long <- function(dat) {
 # Vector of seed values
 seeds <- c(1, 4,5)
 
-# Construct paths and process all
+# Construct paths and process 
 dat_norm <- map_dfr(seeds, function(seed) {
-  path <- paste0("site-simulations/xmls/ratediff0.5/alignments_seed_", seed, "/logs/infer_normal.100000.combined.log")
+  path <- paste0("supp_fig_7_ratediff/ratediff0.5/alignments_seed_", seed, "/infer_normal.100000.combined.log")
   dat <- read.delim(path)
   dat_long <- make_clockrate_long(dat)
-  dat_long$rate_diff <- FALSE
-  dat_long$seed <- seed
+  dat_long$rate_diff <- "No rate diff."
+  
+  if(seed == 1 ) { 
+    dat_long$seed <- "Tree 1"}
+  if(seed == 4 ) { 
+    dat_long$seed <- "Tree 2"}
+  if(seed == 5 ) { 
+    dat_long$seed <- "Tree 3"}
   dat_long
 })
 
 dat_diff <- map_dfr(seeds, function(seed) {
-  path <- paste0("site-simulations/xmls/ratediff0.2/alignments_seed_", seed, "/logs/infer_ratediff.100000.combined.log")
+  path <- paste0("supp_fig_7_ratediff/ratediff0.2/alignments_seed_", seed, "/infer_ratediff.100000.combined.log")
   dat <- read.delim(path)
   dat_long <- make_clockrate_long(dat)
-  dat_long$rate_diff <- TRUE
-  dat_long$seed <- seed
+  dat_long$rate_diff <- "Rate diff."
+  
+  if(seed == 1 ) { 
+    dat_long$seed <- "Tree 1"}
+  if(seed == 4 ) { 
+    dat_long$seed <- "Tree 2"}
+  if(seed == 5 ) { 
+    dat_long$seed <- "Tree 3"}
   dat_long
 })
 dat_all = rbind(dat_norm, dat_diff)
@@ -77,18 +89,15 @@ p <-ggplot(dat_all, aes(x=name, y=value, colour = tape_4x, fill=top3)) +
   geom_hline(yintercept = 0.1, colour = "darkgreen")+
   scale_color_manual(values = c("black", "#0072B2"))+
   scale_fill_manual(values = c("white", "#E69F00"))+
-  theme_bw()+
-  xlab(label = "Edit rate indices")+
-  ylab(label = "Posterior edit rate per day") +
-  theme(legend.position = "top",
-    panel.background = element_blank()
-  )
+  theme_bw() +
+  theme(legend.position = "top", panel.grid.major.y = element_line(color = "#ebebeb", linewidth = 0.2), 
+        panel.grid.minor.y = element_line(color = "#ebebeb", linewidth = 0.2), 
+        panel.grid.major.x = element_blank(),
+    panel.background = element_blank(),
+     strip.text = element_text(size = 10),
+    strip.background = element_rect(colour = "black", fill = "white", linewidth = 0.5)
+  ) +  
+  
+  labs(y = expression("Posterior editing rate [" * d^-1 * "]"),x="Tape index") 
 
-p
-svg(filename = paste0(figure_dir, "clock_rates.svg"), 
-    width = 7.1, height = 3.1)
-p
-dev.off()
-
-ggsave(filename = paste0(figure_dir, "clock_rates.png"), plot = p, dpi = 300, 
-       width = 18, height = 10, units = "cm")
+ggsave("plots/supp_fig_7.pdf", plot = p,height = 14.28, units = "cm", dpi = 300)

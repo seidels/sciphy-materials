@@ -1,4 +1,4 @@
-## Script name: plot_figure_5_D 
+## Script name: create_supp_fig_19 
 ##
 ## Purpose of script: Plot the gastruloid growth, under the 3 change time and
 ## 2 change time analysis with Merle et al. as input
@@ -111,6 +111,7 @@ merle_mean <- c(merle_mean$x,merle_mean$x[2])
 merle_et_al_bins <- data_frame(t=c(6.0,7.0,10),mean=merle_mean,low=merle_low,high=merle_high, tree="Merle et al.,2024")
 
 
+
 ###########################
 #Supplemental figure with the unbinned Merle et al. data and all time bins under SciPhy
 ###########################
@@ -121,7 +122,7 @@ timeline_changes <- c(0.0,4, 7,8, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "../figure_5/inference_output/3-mGASv2-skyline-ou.10burnin.combined.log"
+log_file <- "3-mGASv2-skyline-ou-40K.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:4)] - typewriter_mcmc[,paste0("deathRate.",1:4)]
@@ -135,7 +136,7 @@ timeline_changes <- c(0.0,4, 7.5, 11)
 
 #load the log file with 2 change points in the estimated rates
 
-log_file <- "../figure_5/inference_output/4-mGASv2-skyline-ou.10burnin.combined.log"
+log_file <- "../figure_5/inference_output/4-mGASv2-skyline-ou-40K-3-seeds.log"
 typewriter <- read.table(log_file, header = T)
 typewriter_mcmc <- as.mcmc(typewriter)
 growth <- typewriter_mcmc[,paste0("birthRate.",1:3)] - typewriter_mcmc[,paste0("deathRate.",1:3)]
@@ -146,22 +147,26 @@ growth_hpd$tree = "2 change times"
 growth_combined = rbind(growth_combined,growth_hpd)
 
 
+write.csv(merle_et_al_bins,"supp_fig_18_merle.csv")
+write.csv(growth_combined,"supp_fig_18_sciphy.csv")
+
+
 #set colors and fills manually
 cols <- c("2 change times" = "red", "3 change times" = "orange","Merle et al.,2024"="black", "mean Merle et al."="lightblue","binned Merle et al."="blue")
 cols_fill<-  c("2 change times" = "red", "3 change times" = "orange","Merle et al.,2024"="black","mean Merle et al."="lightblue","binned Merle et al."="blue")
 p_growth_OU_2 <- ggplot(growth_combined) +  
   geom_step(size=1,aes(x=t, y=median, col=tree))+ 
   geom_stepribbon(aes(x=t,ymin = hpd_low, ymax=hpd_up, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +
-  geom_step(data=merle_et_al_full,aes(x=t,y=mean,col=tree),size=1)+
-  geom_stepribbon(data=merle_et_al_full,aes(x=t,ymin=merle_low, ymax=merle_high, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +  
+  geom_step(data=merle_et_al_full,aes(x=t,y=mean,col=tree),size=1) +
+  geom_stepribbon(data=merle_et_al_full,aes(x=t,ymin=low, ymax=high, fill=tree, col=tree), linetype="dotted", alpha = 0.1) +  
   theme_bw() + scale_color_manual(values = cols) + scale_fill_manual(values = cols_fill) + 
   theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line()) +
   ylab(expression("Growth rate [" * d^-1 * "]"))+ scale_x_continuous(breaks=c(0,4,6,7,8,9,10,11)) +
   xlab("Time [d]") 
 
+  
 p_growth_OU_2 <- p_growth_OU_2 + theme(legend.title = element_blank(),text = element_text(size = text_size),panel.grid = element_blank(),panel.border = element_blank(),axis.line = element_line(),legend.position = c(0.85,0.7)) 
 
-ggsave(paste0(pic_dir,"supplement_fig_12.pdf"),p_growth_OU_2, width = 14.28, height = 7.14, units = "cm", dpi = 300)
-
+ggsave(paste0(pic_dir,"supp_fig_18.pdf"),p_growth_OU_2, height = 7.14, units = "cm", dpi = 300)
 
 ###

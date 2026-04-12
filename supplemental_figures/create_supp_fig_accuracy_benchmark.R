@@ -1,6 +1,6 @@
 ## ---------------------------
 ##
-## Script name: Validation dataset features + benchmarking
+## Script name: create_supp_fig_3_4
 ##
 ## Purpose of script: explore features of the dataset simulated for the 100 alignments validation + benchmarking
 ##
@@ -309,11 +309,12 @@ bxp3 <- ggboxplot(
   scale_fill_manual(values=colors_fill) # Add pairwise comparisons p-value
 bxp3
 
+
 full_figure <- cowplot::plot_grid(bxp1 + theme(legend.title = element_blank(),legend.position = c(0.5,0.5),axis.text = element_text(size=9))+ guides(fill = guide_legend(ncol = 1)),bxp2+ theme(legend.position = "None",legend.title = element_blank(),axis.text = element_text(size=9)),bxp3+ theme(legend.position = "None",axis.text = element_text(size=9)),
                                   bxp4 + theme(legend.position = "None",legend.title = element_blank(),axis.text = element_text(size=9)),bxp5+ theme(legend.position = "None",legend.title = element_blank(),axis.text = element_text(size=9)),bxp6+ theme(legend.position = "None",axis.text = element_text(size=9)),
                                   nrow=2, labels = "AUTO") 
 
-ggsave("supp_fig_accuracy_benchmark_UPGMA.pdf",full_figure, width = 21.42, height = 14.28, units = "cm", dpi = 300)
+ggsave("plots/supp_fig_3.pdf",full_figure, width = 21.42, height = 14.28, units = "cm", dpi = 300)
 
 
 
@@ -332,6 +333,7 @@ PI_distances_sciphy_to_truth <- data.frame(seed=1:100,
                                             collisions=collision_probs,
                                             ntips=num_tips
 )
+
 
 
 ##
@@ -385,9 +387,11 @@ corr_ntips_PI <- ggscatter(PI_distances_sciphy_to_truth, y = "distance_SciPhy_CC
 )  + ylab("SciPhy CCD \nPI distance to truth") + xlab("Tree size") + theme_classic()
 
 
+
+
 full_figure <- cowplot::plot_grid(corr_clock_wRF,corr_coll_wRF,corr_ntips_wRF,corr_clock_PI,corr_coll_PI,corr_ntips_PI,
                                   nrow=2, labels = "AUTO") 
 
-ggsave("supp_fig_accuracy.pdf",full_figure, width = 21.42, height = 14.28, units = "cm", dpi = 300)
+ggsave("plots/supp_fig_4.pdf",full_figure, width = 21.42, height = 14.28, units = "cm", dpi = 300)
 
 

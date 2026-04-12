@@ -1,5 +1,6 @@
 ## ---------------------------
 ##
+## Script name: create_supp_fig_19
 ##
 ## Purpose of script: Visualise edit distribution in mGASv2 dataset
 ##
@@ -72,13 +73,18 @@ unique_seqs_per_targetbc = data.frame(targetbc = targetbcs_sort$tape_identifier,
                                       targetbc_new = targetbcs_sort$tape_names,
                                       unique_seqs = nr_unique_sequences_per_targetbc)
 
-g = ggplot(unique_seqs_per_targetbc, aes(x=targetbc_new, y=unique_seqs, fill=targetbc_new)) + 
-  geom_col()+
-  ylab("Unique seq count")+
-  xlab("Tapes")+
-  scale_fill_brewer(palette = "Dark2") +
-  theme_minimal()+
-  theme(legend.position = "none", 
-        axis.title.y = element_text(hjust = 0.2))
-g
-ggsave( filename = "plots/supp_fig_13.pdf", plot = g, width = 7.5, height = 5, units = "cm", dpi = 300)
+#lollipop plot
+g = ggplot(unique_seqs_per_targetbc, aes(x=targetbc_new, y=unique_seqs, color=targetbc_new)) +
+  geom_segment(aes(x=targetbc_new, xend=targetbc_new, y=0, yend=unique_seqs), linewidth = 0.5) +
+  geom_point(size = 2.5) +
+  ylab("Unique sequence count") +
+  xlab("Tape") +
+  scale_color_brewer(palette = "Dark2") +
+  theme_classic(base_size = text_size_min) + 
+  theme(legend.position = "none",
+        axis.line = element_line(linewidth = line_thickness),
+        axis.ticks = element_line(linewidth = line_thickness))
+
+figure_path = "./plots/supp_fig_19.pdf"
+
+ggsave(plot = g, filename = figure_path, width = 90, height = 50, units = "mm",dpi = 300)
