@@ -29,8 +29,16 @@ library(treeio)
 library(cowplot)
 
 # Load data
-typewriter_file <- "inference_output/combined_clockPerTarget_sampling_DataSet1.log"
+typewriter_file <- "inference_output/1-combined.log"
 typewriter <- read.table(typewriter_file, header = T)
+
+swap_integer_for_edit = function(integer, insert_to_integer_map){
+  
+  insert = insert_to_integer_map[insert_to_integer_map$integer == integer, "insert"]
+  return(insert)
+}
+
+
 
 # -----------------------------
 #  Plot Insertion Probabilities
@@ -157,6 +165,7 @@ p_samp <- ggplot(samp_prop_long, aes(x = name, y = value, fill = name)) +
 #  Phylogenetic Trees
 # --------------------
 
+tree_file = "inference_output/3-CCD_clockPerTarget_sampling_DataSet1_3000000.tree"
 tree = treeio::read.beast(file = tree_file)
 stem_length = 25 - max(nodeHeights(tree@phylo))
 
@@ -172,12 +181,10 @@ p <- ggtree(tree, root.position = stem_length, size=0.05) +
   ) +
   xlab("Time [d]")
 
-# 2. Extract plot data to find the visual range
 d <- p$data
 # Get all offspring of node 1309
 clade_nodes <- tidytree::offspring(tree, 1309)
 
-# 3. Find the tips with the extreme Y-coordinates within that clade
 clade_tips <- d[d$node %in% clade_nodes & d$isTip, ]
 taxa1_node <- clade_tips$node[which.min(clade_tips$y)]
 taxa2_node <- clade_tips$node[which.max(clade_tips$y)]
@@ -187,8 +194,8 @@ p <- p + geom_strip(
   taxa2 = taxa2_node, 
   color = "steelblue", 
   barsize = 1,
-  offset = 0.5,     # Adjust to move the bracket away from the tips
-  extend = 0.2      # Adjust to make the bracket slightly taller/shorter
+  offset = 0.5,     
+  extend = 0.2      
 )
 
 # Clade Visualization with Heatmap
@@ -208,6 +215,59 @@ sub_tree_plot = ggtree(sub, root.position = subtree_stem_length) +
     axis.title.x = element_text(size = text_size_max)
   )
 
+
+# get alignment
+alignment = "pre_processed_data/1-alignment_seed1.txt"
+cell_ids_file = "pre_processed_data/1-cell_ids_seed1.txt"
+edit_file = "pre_processed_data/1-edit_table_sample_1.csv"
+edit_to_integer_map = "pre_processed_data/1-insert_to_integer_map.csv"
+
+insert_to_integer_map = read.csv(edit_to_integer_map)
+
+cell_ids = read.csv(cell_ids_file, header = F)
+cell_ids$tip_label = 0:999 # keep numbering of tips as used in alignment
+
+# get cells that are present in subtree
+cell_ids = cell_ids[which(cell_ids$tip_label %in% tips_in_subtree), ]
+cell_ids = cell_ids[order(cell_ids$V1), ] # order, s.t. edits can be combined relying on ordered cell names
+
+
+edits = read.csv(edit_file)
+
+## create targetbc matrices
+ctr = 1
+targetBCs = unique(edits$TargetBC)
+targetbc_edits_list =  vector(mode = "list", length = length(targetBCs))
+
+
+for (targetBC in targetBCs){
+  
+  print(targetBC)
+  edits_tbc = edits[ edits$TargetBC == targetBC, ]
+  edits_tbc = edits_tbc[which(edits_tbc$Cell %in% cell_ids$V1), ]
+  
+  # add cell ids ;
+  ## order cell barcodes alphabetically and the reuse the tip labels from cell ids
+  edits_tbc = edits_tbc[order(edits_tbc$Cell), ]
+  rownames(edits_tbc) = cell_ids$tip_label
+  edits_tbc = edits_tbc[ , 4:8]
+  
+
+  # convert edits from integers to trinucleotides
+  edits_tbc_trinucl = data.frame(Site1 = sapply(edits_tbc$Site1, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site2 = sapply(edits_tbc$Site2, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site3 = sapply(edits_tbc$Site3, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site4 = sapply(edits_tbc$Site4, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)}),
+                                 Site5 = sapply(edits_tbc$Site5, function(x) {swap_integer_for_edit(integer = x, insert_to_integer_map = insert_to_integer_map)})
+  )
+  rownames(edits_tbc_trinucl) = rownames(edits_tbc)
+  
+  targetbc_edits_list[[ctr]] = edits_tbc_trinucl
+  ctr = ctr + 1
+}
+
+
+
 # Heatmap loop logic
 for (i in 1:length(targetBCs)){
   labels <- c(targetBCs[i], rep("", ncol(targetbc_edits_list[[i]])-1))
@@ -220,7 +280,7 @@ for (i in 1:length(targetBCs)){
 final_tree <- sub_tree_plot +
   theme(
     legend.position = "top", 
-    legend.box = "vertical", # Forces separate lines
+    legend.box = "vertical", 
     legend.margin = margin(b = -10),
     legend.text = element_text(size = text_size_min),
     legend.title = element_text(size = text_size_min),
@@ -240,7 +300,6 @@ final_tree <- sub_tree_plot +
 blank_p <- ggplot() + theme_void()
 
 
-# 1. First nesting level (A and B)
 blank_and_clock <- plot_grid(
   blank_p, p_clock_pos, 
   nrow = 2, 
@@ -249,7 +308,6 @@ blank_and_clock <- plot_grid(
   label_size = 7  # Forces 7pt labels
 )
 
-# 2. Second nesting level (C)
 clock_and_insert_probs <- plot_grid(
   blank_and_clock, p_inserts, 
   ncol = 2, 
@@ -257,7 +315,6 @@ clock_and_insert_probs <- plot_grid(
   label_size = 7
 )
 
-# 3. Third nesting level (D, E, F)
 growth_and_sampling <- plot_grid(
   p_growth, p_samp, p, 
   ncol = 3, 
@@ -266,7 +323,6 @@ growth_and_sampling <- plot_grid(
   label_size = 7
 )
 
-# 4. Final assembly (G)
 all_plots <- plot_grid(
   clock_and_insert_probs, 
   growth_and_sampling, 
@@ -278,5 +334,5 @@ all_plots <- plot_grid(
 )
 
 # Save with requested dimensions (185 mm x 180 mm)
-ggsave(paste0(figure_dir, "all_plots_final_GUIDELINES_ADJUSTED_3b.pdf"), all_plots, width = 180, height = 185, units = "mm",)
+ggsave(paste0(figure_dir, "figure_2.pdf"), all_plots, width = 180, height = 185, units = "mm",)
 
