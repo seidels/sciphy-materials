@@ -13,14 +13,13 @@
 ##
 ## ---------------------------
 
-# --- 1. Guidelines Setup ---
+#Guidelines Setup ---
 text_size_max <- 7
 text_size_min <- 5
 plot_text_size <- 7 
-# Consistent line weight for axes and ticks (in pts)
 axis_line_weight <- 0.2
 
-# --- 2. Load Packages ---
+#  Load Packages ---
 require(data.table)
 library(tidyverse)
 library(ape)
@@ -37,7 +36,7 @@ library(phytools)
 library(cowplot)
 library(TreeDist)
 
-# --- 3. Read-in validation results ---
+#  Read-in validation results ---
 B1_index_inference <- read.csv(file = "inference_logs/summary/B1_index_inference.csv")
 insert_rate_inference <- read.csv(file = "inference_logs/summary/insert_rate_inference.csv")
 clock_rate_inference <- read.csv(file = "inference_logs/summary/clock_rate_inference.csv")
@@ -46,26 +45,31 @@ tree_length_inference <- read.csv(file = "inference_logs/summary/tree_length_inf
 
 nr_converged_chains <- 100
 
-# --- 4. Statistical Calculations ---
+#  Coverage and correlation statistics ---
 coverages_per_insert <- c()
 for(i in 1:13) {
   coverage <- sum(insert_rate_inference[which(insert_rate_inference$insertRate == i),"recovered"])/nr_converged_chains
   coverages_per_insert <- c(coverages_per_insert, coverage)
 }
 
+coverage_clock <- sum(clock_rate_inference[,"recovered"])/100
+coverage_height <- sum(tree_height_inference[,"recovered"])/100
+coverage_length <- sum(tree_length_inference[,"recovered"])/100
+coverage_B1 <- sum(B1_index_inference[,"recovered"])/100
+
+
 correlation_clock <- cor.test(clock_rate_inference$median, clock_rate_inference$true_value, method = "pearson")
 correlation_tree_height <- cor.test(tree_height_inference$median, tree_height_inference$true_value, method = "pearson")
 correlation_tree_length <- cor.test(tree_length_inference$median, tree_length_inference$true_value, method = "pearson")
 correlation_B1 <- cor.test(B1_index_inference$median, B1_index_inference$true_value, method = "pearson")
 
-# --- 5. Global Theme Setup ---
+# Theme set
 theme_set(
   theme_classic(base_size = plot_text_size, base_family = "") +
     theme(
       plot.title = element_text(hjust = 0.5, size = text_size_max, face = "bold"),
       axis.title = element_text(size = text_size_max),
       axis.text = element_text(size = text_size_min),
-      # Uniform axis and tick thickness
       axis.line = element_line(linewidth = axis_line_weight),
       axis.ticks = element_line(linewidth = axis_line_weight),
       legend.position = "none"
@@ -74,7 +78,7 @@ theme_set(
 
 cols_recovered <- c("TRUE" = "black", "FALSE" = "darkgrey")
 
-# --- 6. Generate Validation Plots ---
+# Panels A to E: Generate parameter Validation Plots ---
 make_val_plot <- function(df, title, x_lim, y_lim, y_lab = "Estimated median\n& posterior interval") {
   ggplot(df, aes(x=true_value, y=median, color=as.logical(recovered))) +
     geom_point(size = 0.2) + 
@@ -91,7 +95,7 @@ tree_height_plot  <- make_val_plot(tree_height_inference, "Tree height", c(15, 3
 tree_length_plot  <- make_val_plot(tree_length_inference, "Tree length", c(0, 10000), c(0, 10000))
 B1_index_plot     <- make_val_plot(B1_index_inference, "Tree balance", c(0, 220), c(0, 220))
 
-# --- 7. Tree Topology Analysis ---
+# Panel F - Tree Topology Analysis 
 distance_SCIPHY_truth_PI <- c()
 distance_truth_random_PI <- c()
 
@@ -136,7 +140,7 @@ effect_size <- pi_distances_filtered %>%
 print(stat.test)
 print(effect_size)
 
-# --- 8. Boxplot for Topology ---
+#  Boxplot for Topology ---
 cols_topo <- c("SciPhy_CCD" = "#2e7d32cc", "Random_BD_tree" = "#005bf2cc")
 
 bxp_CCD_PI <- ggboxplot(
@@ -156,11 +160,11 @@ bxp_CCD_PI <- ggboxplot(
   y = "distance",
   fill = "reference", 
   linewidth = 0.2, 
-  outlier.size = 0.2 # Matches geom_point(size = 0.2) from make_val_plot
+  outlier.size = 0.2 
 ) + 
   scale_fill_manual(
     values = cols_topo, 
-    # Ensure these are in the same alphabetical/factor order as the 'reference' column
+    # Ensure these are in the order as the 'reference' column
     labels = c("Random_BD_tree" = "Random BD tree", "SciPhy_CCD" = "SciPhy CCD")
   ) +
   scale_x_discrete(
@@ -174,7 +178,7 @@ bxp_CCD_PI <- ggboxplot(
     y = "Normalized PI distance \n to true tree"
   )
 
-# Apply explicit theme to match axis thickness of other panels
+# match axis thickness of other panels
 paired_test_CCD_PI <- bxp_CCD_PI + 
   stat_pvalue_manual(
     stat.test, 
@@ -187,12 +191,11 @@ paired_test_CCD_PI <- bxp_CCD_PI +
     plot.title = element_text(hjust = 0.5, size = text_size_max, face = "bold"),
     axis.title = element_text(size = text_size_max),
     axis.text = element_text(size = text_size_min),
-    # Force thin lines to match validation plots
     axis.line = element_line(linewidth = axis_line_weight),
     axis.ticks = element_line(linewidth = axis_line_weight),
     legend.position = "none"
   )
-# --- 9. Final Assembly ---
+# Assembly in a grid
 full_figure <- cowplot::plot_grid(
   insert_probs_plot, clock_rate_plot, 
   tree_height_plot, tree_length_plot, 
@@ -202,9 +205,8 @@ full_figure <- cowplot::plot_grid(
   label_size = text_size_max
 )
 
-# --- 10. Save Output ---
 ggsave(
-  filename = "figure_2_GUIDELINES_ADJUSTED.pdf",
+  filename = "plots/figure_2.pdf",
   plot = full_figure,
   width = 180, 
   height = 185, 
